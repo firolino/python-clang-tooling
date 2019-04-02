@@ -32,23 +32,10 @@ namespace utils
     std::string getClangBuiltInIncludePath(const std::string &fullCallPath);
 }
 
-enum DeclType
-{
-    nDecl,
-    nFunctionDecl,
-    nNamedDecl
-};
-
 struct MCB
 {
-    DeclType ctype;
     clang::ast_matchers::internal::Matcher<clang::Decl> m;
     boost::python::object cb;
-
-    MCB(DeclType ctype, clang::ast_matchers::internal::Matcher<clang::Decl> m,boost::python::object cb)
-        : ctype(ctype), m(m), cb(cb)
-    {}
-        
 };
 
 

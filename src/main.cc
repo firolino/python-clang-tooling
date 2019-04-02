@@ -79,36 +79,15 @@ struct CxxMethodDecl
 
 struct FunctionDecl
 {
-    clang::ast_matchers::internal::Matcher<clang::Decl> mdecl;
-    clang::ast_matchers::internal::BindableMatcher<clang::Decl> decl;
-    bool bounded;
-
-    FunctionDecl()
-        : mdecl(nullptr), decl(nullptr), bounded(false)
-    {}
-
-    FunctionDecl(clang::ast_matchers::internal::Matcher<clang::Decl> decl)
-        : mdecl(decl), decl(nullptr), bounded(true)
-    {}
-
-    FunctionDecl(clang::ast_matchers::internal::BindableMatcher<clang::Decl> decl)
-        : mdecl(nullptr), decl(decl), bounded(false)
-    {}
-
-    auto bind(const std::string &id)
-    {
-        return FunctionDecl(decl.bind(id));
-    }
-    
     auto callSimple() 
     {
-        return FunctionDecl(clang::ast_matchers::functionDecl());
+        return clang::ast_matchers::functionDecl();
     }
 
     template<typename T>
     auto callExtended(const clang::ast_matchers::internal::Matcher<T>& o) 
     {
-        return FunctionDecl(clang::ast_matchers::functionDecl(o));
+        return clang::ast_matchers::functionDecl(o);
     }
 };
 
@@ -126,39 +105,17 @@ struct VarDecl
     }
 };
 
-
 struct NamedDecl
 {
-    clang::ast_matchers::internal::Matcher<clang::Decl> mdecl;
-    clang::ast_matchers::internal::BindableMatcher<clang::Decl> decl;
-    bool bounded;
-
-    NamedDecl()
-        : mdecl(nullptr), decl(nullptr), bounded(false)
-    {}
-
-    NamedDecl(clang::ast_matchers::internal::Matcher<clang::Decl> decl)
-        : mdecl(decl), decl(nullptr), bounded(true)
-    {}
-
-    NamedDecl(clang::ast_matchers::internal::BindableMatcher<clang::Decl> decl)
-        : mdecl(nullptr), decl(decl), bounded(false)
-    {}
-
-    auto bind(const std::string &id)
-    {
-        return NamedDecl(decl.bind(id));
-    }
-    
     auto callSimple() 
     {
-        return NamedDecl(clang::ast_matchers::namedDecl());
+        return clang::ast_matchers::namedDecl();
     }
 
     template<typename T>
     auto callExtended(const clang::ast_matchers::internal::Matcher<T>& o) 
     {
-        return NamedDecl(clang::ast_matchers::namedDecl(o));
+        return clang::ast_matchers::namedDecl(o);
     }
 };
 
@@ -212,35 +169,10 @@ class Tooling
             : filename(filename)
         {}
 
-        void add(pywrappers::FunctionDecl m, boost::python::object cb)
-        {llvm::outs() << "--fn" << "\n";
-            MCB mcb(nFunctionDecl, m.bounded ? m.mdecl : m.decl, cb);
-            matchers.push_back(mcb);
-        }
-
-        void add(pywrappers::NamedDecl m, boost::python::object cb)
-        {llvm::outs() << "--n" << "\n";
-            MCB mcb(nNamedDecl, m.bounded ? m.mdecl : m.decl, cb);
-            matchers.push_back(mcb);
-        }
-
-        /*void add(clang::ast_matchers::internal::Matcher<clang::FunctionDecl> m, boost::python::object cb)
-        {llvm::outs() << "--fn" << "\n";
-            MCB mcb(m, cb);
-            matchers.push_back(mcb);
-        }
-
-        void add(clang::ast_matchers::internal::Matcher<clang::NamedDecl> m, boost::python::object cb)
-        {llvm::outs() << "--nm" << "\n";
-            MCB mcb(m, cb);
-            matchers.push_back(mcb);
-        }
-
         void add(clang::ast_matchers::internal::Matcher<clang::Decl> m, boost::python::object cb)
-        {llvm::outs() << "--n" << "\n";
-            MCB mcb(m, cb);
-            matchers.push_back(mcb);
-        }*/
+        {
+            matchers.push_back({m, cb});
+        }
 
         void run()
         {
@@ -300,15 +232,9 @@ BOOST_PYTHON_MODULE(libtooling)
 {
     using namespace boost::python;
 
-    //void (Tooling::*add_decl)(clang::ast_matchers::internal::Matcher<clang::Decl>, boost::python::object) = &Tooling::add;
-    void (Tooling::*add_fndecl)(pywrappers::FunctionDecl, boost::python::object) = &Tooling::add;
-    void (Tooling::*add_nameddecl)(pywrappers::NamedDecl, boost::python::object) = &Tooling::add;
-
     class_<Tooling>("Tooling", init<>())
         .def(init<const std::string&>())
-        //.def("add", add_decl)
-        .def("add", add_fndecl)
-        .def("add", add_nameddecl)
+        .def("add", &Tooling::add)
         .def("run", &Tooling::run)
         .def("run_from_source", &Tooling::run_from_source)
     ;
@@ -347,6 +273,25 @@ BOOST_PYTHON_MODULE(libtooling)
         def("refersToType", refersToType);
         def("isInteger", isInteger);
         def("hasName", hasName);
+
+        class_<BoundNodes>("BoundNodes", init<const BoundNodes&>())
+            
+            .def("getFunctionDecl", 
+                +[](BoundNodes &bn, const std::string &id)
+                {
+                    return bn.getNodeAs<FunctionDecl>(id);
+                }, 
+                return_value_policy<reference_existing_object>()
+            )
+            
+            .def("getVarDecl", 
+                +[](BoundNodes &bn, const std::string &id)
+                {
+                    return bn.getNodeAs<VarDecl>(id);
+                }, 
+                return_value_policy<reference_existing_object>()
+            )
+        ;
     }
 
 
@@ -362,7 +307,6 @@ BOOST_PYTHON_MODULE(libtooling)
 
     class_<clang::FunctionDecl>("FunctionDeclImpl", init<const clang::FunctionDecl&>());
     class_<FunctionDecl>("FunctionDecl")
-        .def("bind", &FunctionDecl::bind)
         .def("__call__", &FunctionDecl::callSimple)
         .def("__call__", 
             +[](FunctionDecl &decl, clang::ast_matchers::internal::Matcher<clang::NamedDecl> namedDecl)
@@ -385,7 +329,6 @@ BOOST_PYTHON_MODULE(libtooling)
 
     class_<clang::NamedDecl>("NamedDeclImpl", init<const clang::NamedDecl&>());
     class_<NamedDecl>("NamedDecl")
-        .def("bind", &NamedDecl::bind)
         .def("__call__", &NamedDecl::callSimple)
         .def("__call__", 
             +[](NamedDecl &decl, clang::ast_matchers::internal::Matcher<clang::NamedDecl> namedDecl)

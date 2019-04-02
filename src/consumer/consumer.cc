@@ -11,22 +11,12 @@ struct PyMatcher : public clang::ast_matchers::MatchFinder::MatchCallback
     boost::python::object callback;
 
     clang::ASTContext &context;
-    DeclType ttype;
-
-    PyMatcher(boost::python::object callback, clang::ASTContext &context)
-        : callback(callback), context(context)
-    {}
 
     PyMatcher(MCB mcb, clang::ASTContext &context)
-        : callback(mcb.cb), context(context), ttype(mcb.ctype)
+        : callback(mcb.cb), context(context)
     {
         finder.addMatcher(mcb.m, this);
     }
-
-    /*void addMatcher(clang::ast_matchers::internal::Matcher<clang::Decl> m)
-    {
-        finder.addMatcher(m, this);
-    }*/
 
     void matchAST()
     {
@@ -35,35 +25,7 @@ struct PyMatcher : public clang::ast_matchers::MatchFinder::MatchCallback
 
     void run(const clang::ast_matchers::MatchFinder::MatchResult &result)
     {
-        using namespace clang;
-llvm::outs() << ".\n";
-        for(auto &entry : result.Nodes.getMap())
-        {   
-            auto &id = entry.first;llvm::outs() << id << "+\n";
-            if(ttype == nFunctionDecl){
-            if(const auto *node = result.Nodes.getNodeAs<FunctionDecl>(id))
-            {
-                llvm::outs() << "fn\n";
-                callback(node, id);
-            }}/*
-            if(const auto *node = result.Nodes.getNodeAs<VarDecl>(id))
-            {
-                llvm::outs() << "vn\n";
-                callback(node, id);
-            }*/
-            if(ttype == nNamedDecl){
-            if(const auto *node = result.Nodes.getNodeAs<NamedDecl>(id))
-            {
-                llvm::outs() << "n\n";
-                callback(node, id);
-            }}
-            if(ttype == nDecl){
-            if(const auto *node = result.Nodes.getNodeAs<Decl>(id))
-            {
-                llvm::outs() << "d\n";
-                callback(node, id);
-            }}
-        }
+        callback(result.Nodes);
     }
 };
 
