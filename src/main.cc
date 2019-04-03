@@ -61,63 +61,28 @@ struct implicitly_convertible_helper
 namespace pywrappers
 {
 
-struct DeclRefExpr
-{
-    auto operator()() 
-    {
-        return clang::ast_matchers::declRefExpr();
-    }
-};
+#define GENERATE_CLANG_WRAPPER(name, func)                                      \
+struct name                                                                     \
+{                                                                               \
+    auto callSimple()                                                           \
+    {                                                                           \
+        return clang::ast_matchers::func();                                     \
+    }                                                                           \
+                                                                                \
+    template<typename T>                                                        \
+    auto callExtended(const clang::ast_matchers::internal::Matcher<T>& o)       \
+    {                                                                           \
+        return clang::ast_matchers::func(o);                                    \
+    }                                                                           \
+}
 
-struct CxxMethodDecl
-{
-    auto operator()() 
-    {
-        return clang::ast_matchers::cxxMethodDecl();
-    }
-};
-
-struct FunctionDecl
-{
-    auto callSimple() 
-    {
-        return clang::ast_matchers::functionDecl();
-    }
-
-    template<typename T>
-    auto callExtended(const clang::ast_matchers::internal::Matcher<T>& o) 
-    {
-        return clang::ast_matchers::functionDecl(o);
-    }
-};
-
-struct VarDecl
-{
-    auto callSimple() 
-    {
-        return clang::ast_matchers::varDecl();
-    }
-
-    template<typename T>
-    auto callExtended(const clang::ast_matchers::internal::Matcher<T>& o) 
-    {
-        return clang::ast_matchers::varDecl(o);
-    }
-};
-
-struct NamedDecl
-{
-    auto callSimple() 
-    {
-        return clang::ast_matchers::namedDecl();
-    }
-
-    template<typename T>
-    auto callExtended(const clang::ast_matchers::internal::Matcher<T>& o) 
-    {
-        return clang::ast_matchers::namedDecl(o);
-    }
-};
+GENERATE_CLANG_WRAPPER(NamedDecl, namedDecl);
+GENERATE_CLANG_WRAPPER(DeclRefExpr, declRefExpr);
+GENERATE_CLANG_WRAPPER(CXXMethodDecl, cxxMethodDecl);
+GENERATE_CLANG_WRAPPER(FunctionDecl, functionDecl);
+GENERATE_CLANG_WRAPPER(VarDecl, varDecl);
+GENERATE_CLANG_WRAPPER(Decl, decl);
+GENERATE_CLANG_WRAPPER(UsingDecl, usingDecl);
 
 }
 
@@ -131,9 +96,9 @@ struct NamedDecl
     class_<BindableMatcher<name>, bases<Matcher<name>>>(                            \
         "BindableMatcher_" STRINGIFY(name), init<const Matcher<name>&>())           \
             .def("bind",                                                            \
-                +[](BindableMatcher<name> &bm, const std::string &id)               \
+                +[](BindableMatcher<name> &self, const std::string &id)               \
                 {                                                                   \
-                    return bm.bind(id);                                             \
+                    return self.bind(id);                                             \
                 }                                                                   \
             )                                                                       \
         ;                                                                           \
@@ -210,11 +175,11 @@ class Tooling
             using namespace clang;
             using namespace clang::tooling;
 
-            if(sourceTxt.empty())
+            /*if(sourceTxt.empty())
             {
                 llvm::errs() << "Source is empty!\n";
                 return;
-            }
+            }*/
 
             std::vector<std::string> compileArgs;
             // TODO compileArgs.push_back("-I" + utils::getClangBuiltInIncludePath(argv[0]));
@@ -273,21 +238,22 @@ BOOST_PYTHON_MODULE(libtooling)
         def("refersToType", refersToType);
         def("isInteger", isInteger);
         def("hasName", hasName);
+        def("matchesName", matchesName);
 
         class_<BoundNodes>("BoundNodes", init<const BoundNodes&>())
             
             .def("getFunctionDecl", 
-                +[](BoundNodes &bn, const std::string &id)
+                +[](BoundNodes &self, const std::string &id)
                 {
-                    return bn.getNodeAs<FunctionDecl>(id);
+                    return self.getNodeAs<FunctionDecl>(id);
                 }, 
                 return_value_policy<reference_existing_object>()
             )
             
             .def("getVarDecl", 
-                +[](BoundNodes &bn, const std::string &id)
+                +[](BoundNodes &self, const std::string &id)
                 {
-                    return bn.getNodeAs<VarDecl>(id);
+                    return self.getNodeAs<VarDecl>(id);
                 }, 
                 return_value_policy<reference_existing_object>()
             )
@@ -297,21 +263,37 @@ BOOST_PYTHON_MODULE(libtooling)
 
     using namespace pywrappers;
 
-    class_<DeclRefExpr>("DeclRefExpr")
-        .def("__call__", &DeclRefExpr::operator())
+    class_<clang::CXXMethodDecl>("CxxMethodDeclImpl", init<const clang::CXXMethodDecl&>());
+    class_<CXXMethodDecl>("CxxMethodDecl")
+        .def("__call__", &CXXMethodDecl::callSimple)
     ;
 
-    class_<CxxMethodDecl>("CxxMethodDecl")
-        .def("__call__", &CxxMethodDecl::operator())
+    class_<clang::DeclRefExpr>("DeclRefExprImpl", init<const clang::DeclRefExpr&>());
+    class_<DeclRefExpr>("DeclRefExpr")
+        .def("__call__", &DeclRefExpr::callSimple)
+    ;
+
+    class_<Decl>("Decl")
+        .def("__call__", &Decl::callSimple)
+        .def("__call__", 
+            +[](Decl &self, clang::ast_matchers::internal::Matcher<clang::Decl> decl)
+            {
+                return self.callExtended(decl);
+            }
+        )
+    ;
+
+    class_<UsingDecl>("UsingDecl")
+        .def("__call__", &UsingDecl::callSimple)        
     ;
 
     class_<clang::FunctionDecl>("FunctionDeclImpl", init<const clang::FunctionDecl&>());
     class_<FunctionDecl>("FunctionDecl")
         .def("__call__", &FunctionDecl::callSimple)
         .def("__call__", 
-            +[](FunctionDecl &decl, clang::ast_matchers::internal::Matcher<clang::NamedDecl> namedDecl)
+            +[](FunctionDecl &self, clang::ast_matchers::internal::Matcher<clang::NamedDecl> namedDecl)
             {
-                return decl.callExtended(namedDecl);
+                return self.callExtended(namedDecl);
             }
         )
     ;
@@ -320,9 +302,9 @@ BOOST_PYTHON_MODULE(libtooling)
     class_<VarDecl>("VarDecl")
         .def("__call__", &VarDecl::callSimple)
         .def("__call__", 
-            +[](VarDecl &decl, clang::ast_matchers::internal::Matcher<clang::ValueDecl> namedDecl)
+            +[](VarDecl &self, clang::ast_matchers::internal::Matcher<clang::ValueDecl> namedDecl)
             {
-                return decl.callExtended(namedDecl);
+                return self.callExtended(namedDecl);
             }
         )
     ;
@@ -331,9 +313,9 @@ BOOST_PYTHON_MODULE(libtooling)
     class_<NamedDecl>("NamedDecl")
         .def("__call__", &NamedDecl::callSimple)
         .def("__call__", 
-            +[](NamedDecl &decl, clang::ast_matchers::internal::Matcher<clang::NamedDecl> namedDecl)
+            +[](NamedDecl &self, clang::ast_matchers::internal::Matcher<clang::NamedDecl> namedDecl)
             {
-                return decl.callExtended(namedDecl);
+                return self.callExtended(namedDecl);
             }
         )
     ;
@@ -341,7 +323,7 @@ BOOST_PYTHON_MODULE(libtooling)
     DeclRefExpr declRefExpr;
     scope().attr("declRefExpr") = declRefExpr;
 
-    CxxMethodDecl cxxMethodDecl;
+    CXXMethodDecl cxxMethodDecl;
     scope().attr("cxxMethodDecl") = cxxMethodDecl;
 
     FunctionDecl functionDecl;
@@ -352,6 +334,12 @@ BOOST_PYTHON_MODULE(libtooling)
 
     NamedDecl namedDecl;
     scope().attr("namedDecl") = namedDecl;
+
+    Decl decl;
+    scope().attr("decl") = decl;
+    
+    UsingDecl usingDecl;
+    scope().attr("usingDecl") = usingDecl;
 }
 
 
