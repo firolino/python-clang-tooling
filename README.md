@@ -24,16 +24,14 @@ tooling.run()
 
 # Node Matchers
 
-Return Type | Name | Parameters | Implemented
------------- | ------------- | ------------- | -------------
-Matcher<T> | | | Matcher<T> | 
+Matcher<T> Return Type | Name | Matcher<T> Parameters | Implemented
 ------------ | ------------- | ------------- | -------------
 CXXCtorInitializer | cxxCtorInitializer | CXXCtorInitializer | 
 Decl | accessSpecDecl | AccessSpecDecl | 
 Decl | blockDecl | BlockDecl | 
 Decl | classTemplateDecl | ClassTemplateDecl | 
-Decl | classTemplatePartialSpecializationDecl | ClassTemplatePartialSpecializationDecl | 
-Decl | classTemplateSpecializationDecl | ClassTemplateSpecializationDecl | 
+Decl | classTempleParalSpelizionDecl | classTempleParalSpelizionDecl | 
+Decl | classTempleSpelizionDecl | classTempleSpelizionDecl | 
 Decl | cxxConstructorDecl | CXXConstructorDecl | 
 Decl | cxxConversionDecl | CXXConversionDecl | 
 Decl | cxxDestructorDecl | CXXDestructorDecl | 
