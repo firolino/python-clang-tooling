@@ -24,7 +24,7 @@ tooling.run()
 
 # Node Matchers
 
-Matcher\<T\><br/>Return Type | Name | Matcher\<T\><br/>Parameters | Implemented
+Matcher\<T\><br/>Return Type | Name | Matcher\<T\><br/>Parameters | Implemented<br/>Tested
 ------------ | ------------- | ------------- | --------
 CXXCtorInitializer | cxxCtorInitializer | CXXCtorInitializer | 
 Decl | accessSpecDecl | AccessSpecDecl | 
@@ -43,7 +43,7 @@ Decl | enumConstantDecl | EnumConstantDecl |
 Decl | enumDecl | EnumDecl | 
 Decl | fieldDecl | FieldDecl | 
 Decl | friendDecl | FriendDecl | 
-Decl | functionDecl | FunctionDecl | :heavy_check_mark:
+Decl | functionDecl | FunctionDecl | :heavy_check_mark::heavy_check_mark:
 Decl | functionTemplateDecl | FunctionTemplateDecl | 
 Decl | indirectFieldDecl | IndirectFieldDecl | 
 Decl | labelDecl | LabelDecl | 
