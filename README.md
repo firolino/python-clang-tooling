@@ -35,20 +35,20 @@ classTempleSpelizionDecl |  |
 cxxConstructorDecl |  | 
 cxxConversionDecl |  | 
 cxxDestructorDecl |  | 
-cxxMethodDecl | :heavy_check_mark: | 
+cxxMethodDecl | <center>:heavy_check_mark:</center> | 
 cxxRecordDecl |  | 
-decl | :heavy_check_mark: | 
+decl | <center>:heavy_check_mark:</center> | 
 declaratorDecl |  | 
 enumConstantDecl |  | 
 enumDecl |  | 
 fieldDecl |  | 
 friendDecl |  | 
-functionDecl | :heavy_check_mark: | 
+functionDecl | <center>:heavy_check_mark:</center> | 
 functionTemplateDecl |  | 
 indirectFieldDecl |  | 
 labelDecl |  | 
 linkageSpecDecl |  | 
-namedDecl | :heavy_check_mark: | 
+namedDecl | <center>:heavy_check_mark:</center> | 
 namespaceAliasDecl |  | 
 namespaceDecl |  | 
 nonTypeTemplateParmDecl |  | 
@@ -71,10 +71,10 @@ typedefDecl |  |
 typedefNameDecl |  | 
 unresolvedUsingTypenameDecl |  | 
 unresolvedUsingValueDecl |  | 
-usingDecl | :heavy_check_mark: | 
+usingDecl | <center>:heavy_check_mark:</center> | 
 usingDirectiveDecl |  | 
 valueDecl |  | 
-varDecl | :heavy_check_mark: | 
+varDecl | <center>:heavy_check_mark:</center> | 
 nestedNameSpecifierLoc |  | 
 nestedNameSpecifier |  | 
 ompDefaultClause |  | 
@@ -123,7 +123,7 @@ cxxThisExpr |  |
 cxxThrowExpr |  | 
 cxxTryStmt |  | 
 cxxUnresolvedConstructExpr |  | 
-declRefExpr | :heavy_check_mark: | 
+declRefExpr | <center>:heavy_check_mark:</center> | 
 declStmt |  | 
 defaultStmt |  | 
 designatedInitExpr |  | 
