@@ -24,7 +24,7 @@ tooling.run()
 
 # Node Matchers
 
-Matcher\<T\> Return Type | Name | Matcher\<T\> Parameters | Implemented
+Matcher\<T\><br/>Return Type | Name | Matcher\<T\><br/>Parameters | Implemented
 ------------ | ------------- | ------------- | --------
 CXXCtorInitializer | cxxCtorInitializer | CXXCtorInitializer | 
 Decl | accessSpecDecl | AccessSpecDecl | 
