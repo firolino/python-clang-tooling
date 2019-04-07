@@ -20,6 +20,10 @@ def notMatches(src, matcher):
 
 class TestMatchers(unittest.TestCase):
     
+    def test_AccessSpecDecl(self):
+        self.assertTrue("class C { public: int i; };", accessSpecDecl())    
+        self.assertTrue("class C { public: int i; };", accessSpecDecl(isPublic()))
+
     def test_usingDecl(self):
         self.assertTrue(notMatches("", decl(usingDecl())))
         self.assertTrue(matches("namespace x { class X {}; } using x::X;", decl(usingDecl())))
@@ -32,7 +36,6 @@ class TestMatchers(unittest.TestCase):
         NamedX = namedDecl(matchesName("::X"))
         self.assertTrue(matches("typedef int Xa;", NamedX))
         self.assertTrue(matches("int Xb;", NamedX))
-   
 
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestMatchers)

@@ -84,6 +84,10 @@ GENERATE_CLANG_WRAPPER(VarDecl, varDecl);
 GENERATE_CLANG_WRAPPER(Decl, decl);
 GENERATE_CLANG_WRAPPER(UsingDecl, usingDecl);
 
+GENERATE_CLANG_WRAPPER(AccessSpecDecl, accessSpecDecl);
+
+
+
 }
 
 #define STRINGIFY(str) #str
@@ -96,9 +100,9 @@ GENERATE_CLANG_WRAPPER(UsingDecl, usingDecl);
     class_<BindableMatcher<name>, bases<Matcher<name>>>(                            \
         "BindableMatcher_" STRINGIFY(name), init<const Matcher<name>&>())           \
             .def("bind",                                                            \
-                +[](BindableMatcher<name> &self, const std::string &id)               \
+                +[](BindableMatcher<name> &self, const std::string &id)             \
                 {                                                                   \
-                    return self.bind(id);                                             \
+                    return self.bind(id);                                           \
                 }                                                                   \
             )                                                                       \
         ;                                                                           \
@@ -209,6 +213,8 @@ BOOST_PYTHON_MODULE(libtooling)
         using namespace clang::ast_matchers;
         using namespace clang::ast_matchers::internal;
 
+        EXPOSE_MATCHER(AccessSpecDecl);
+
         EXPOSE_MATCHER(Stmt);
         EXPOSE_MATCHER(NamedDecl);
         EXPOSE_MATCHER(Decl);
@@ -239,6 +245,8 @@ BOOST_PYTHON_MODULE(libtooling)
         def("isInteger", isInteger);
         def("hasName", hasName);
         def("matchesName", matchesName);
+        def("isPublic", isPublic);
+
 
         class_<BoundNodes>("BoundNodes", init<const BoundNodes&>())
             
@@ -262,6 +270,17 @@ BOOST_PYTHON_MODULE(libtooling)
 
 
     using namespace pywrappers;
+
+    class_<clang::AccessSpecDecl>("AccessSpecDeclImpl", init<const clang::AccessSpecDecl&>());
+    class_<AccessSpecDecl>("AccessSpecDecl")
+        .def("__call__", &AccessSpecDecl::callSimple)
+        .def("__call__", 
+            +[](AccessSpecDecl &self, clang::ast_matchers::internal::Matcher<clang::Decl> decl)
+            {
+                return self.callExtended(decl);
+            }
+        )
+    ;
 
     class_<clang::CXXMethodDecl>("CxxMethodDeclImpl", init<const clang::CXXMethodDecl&>());
     class_<CXXMethodDecl>("CxxMethodDecl")
@@ -319,6 +338,9 @@ BOOST_PYTHON_MODULE(libtooling)
             }
         )
     ;
+
+    AccessSpecDecl accessSpecDecl;
+    scope().attr("accessSpecDecl") = accessSpecDecl;
 
     DeclRefExpr declRefExpr;
     scope().attr("declRefExpr") = declRefExpr;

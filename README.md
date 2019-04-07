@@ -26,7 +26,7 @@ tooling.run()
 
 Name | Implemented | Tested
 ------------ | ------------- | ------------- 
-accessSpecDecl |  | 
+accessSpecDecl | :heavy_check_mark: | :heavy_check_mark:
 addrLabelExpr |  | 
 arraySubscriptExpr |  | 
 arrayType |  | 
@@ -297,7 +297,7 @@ isOMPStructuredBlock |  |
 isOverride |  | 
 isPrivate |  | 
 isProtected |  | 
-isPublic |  | 
+isPublic | :heavy_check_mark: | :heavy_check_mark:
 isPure |  | 
 isSameOrDerivedFrom |  | 
 isScoped |  | 
