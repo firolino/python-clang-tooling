@@ -1,5 +1,4 @@
-#ifndef UTILS_HPP
-#define UTILS_HPP
+#pragma once
 
 #include <fstream>
 #include <vector>
@@ -31,13 +30,3 @@ namespace utils
 
     std::string getClangBuiltInIncludePath(const std::string &fullCallPath);
 }
-
-struct MCB
-{
-    clang::ast_matchers::internal::Matcher<clang::Decl> m;
-    boost::python::object cb;
-};
-
-
-
-#endif

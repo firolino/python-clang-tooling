@@ -1,5 +1,4 @@
-#ifndef FRONTEND_ACTION_HPP
-#define FRONTEND_ACTION_HPP
+#pragma once
 
 #include <llvm/ADT/StringRef.h>
 #include <clang/Frontend/FrontendActions.h>
@@ -9,7 +8,7 @@
 #include <vector>
 #include <string>
 
-#include "../utils/utils.h"
+#include "../utils/matchercallback.h"
 
 
 namespace clang
@@ -20,12 +19,9 @@ namespace clang
 class XFrontendAction : public clang::ASTFrontendAction 
 {
     private:
-        const std::vector<MCB> matchers;
+        const MatcherCallbackCollection matchers;
 
     public:
-        XFrontendAction(const std::vector<MCB> &matchers)
-            : matchers(matchers) {}
+        XFrontendAction(const MatcherCallbackCollection &matchers);
         virtual std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(clang::CompilerInstance &compiler, llvm::StringRef inFile) override;
 };
-
-#endif

@@ -12,10 +12,46 @@ struct PyMatcher : public clang::ast_matchers::MatchFinder::MatchCallback
 
     clang::ASTContext &context;
 
-    PyMatcher(MCB mcb, clang::ASTContext &context)
-        : callback(mcb.cb), context(context)
+    PyMatcher(DeclMatcherCallback mcb, clang::ASTContext &context)
+        : callback(mcb.fn), context(context)
     {
-        finder.addMatcher(mcb.m, this);
+        finder.addMatcher(mcb.matcher, this);
+    }
+
+    PyMatcher(TypeMatcherCallback mcb, clang::ASTContext &context)
+        : callback(mcb.fn), context(context)
+    {
+        finder.addMatcher(mcb.matcher, this);
+    }
+
+    PyMatcher(StmtMatcherCallback mcb, clang::ASTContext &context)
+        : callback(mcb.fn), context(context)
+    {
+        finder.addMatcher(mcb.matcher, this);
+    }
+
+    PyMatcher(NnsMatcherCallback mcb, clang::ASTContext &context)
+        : callback(mcb.fn), context(context)
+    {
+        finder.addMatcher(mcb.matcher, this);
+    }
+
+    PyMatcher(NnslMatcherCallback mcb, clang::ASTContext &context)
+        : callback(mcb.fn), context(context)
+    {
+        finder.addMatcher(mcb.matcher, this);
+    }
+
+    PyMatcher(TypelocMatcherCallback mcb, clang::ASTContext &context)
+        : callback(mcb.fn), context(context)
+    {
+        finder.addMatcher(mcb.matcher, this);
+    }
+
+    PyMatcher(CxxInitMatcherCallback mcb, clang::ASTContext &context)
+        : callback(mcb.fn), context(context)
+    {
+        finder.addMatcher(mcb.matcher, this);
     }
 
     void matchAST()
@@ -29,25 +65,26 @@ struct PyMatcher : public clang::ast_matchers::MatchFinder::MatchCallback
     }
 };
 
-void MMatcher::start(const std::vector<MCB> &matchers)
+void MMatcher::start(const MatcherCallbackCollection &matchers)
 {
     using namespace clang::ast_matchers;
 
     std::vector<PyMatcher> finders;
-    //std::vector<clang::ast_matchers::internal::Matcher<clang::Decl>> mms = matchers;
-    //llvm::outs() << matchers.size() << "\n";
-    for(auto m : matchers)
-    {
-        //auto mx = functionDecl().bind(".");
-        //auto mmx = mms[0];//.bind(".");
-        //finder.addMatcher(mx, this);
-        //llvm::outs() << m.getID().second.asStringRef() <<"\n";
-        //finder.addMatcher(functionDecl().bind("hhhhhhhhhhh"), this);
-        PyMatcher finder(m, context);
-        finders.push_back(finder);
-    }
-    //finder.addMatcher(functionDecl().bind("."), this);
-
+    for(auto m : matchers.decl_matchers)
+        finders.push_back({m, context});
+    for(auto m : matchers.type_matchers)
+        finders.push_back({m, context});
+    for(auto m : matchers.stmt_matchers)
+        finders.push_back({m, context});
+    for(auto m : matchers.nns_matchers)
+        finders.push_back({m, context});
+    for(auto m : matchers.nnsl_matchers)
+        finders.push_back({m, context});
+    for(auto m : matchers.typeloc_matchers)
+        finders.push_back({m, context});
+    for(auto m : matchers.cxxinit_matchers)
+        finders.push_back({m, context});
+    
     for(auto finder : finders)
         finder.matchAST();
 }
@@ -56,35 +93,9 @@ std::set<std::string> st;
 void MMatcher::run(const clang::ast_matchers::MatchFinder::MatchResult &result)
 {
     using namespace clang;
-/*
-    const auto &ms = result.Nodes.getMap();
-    for(auto &a : ms)
-    {
-        if(st.count(a.first.c_str()) == 0)
-            {st.insert(a.first.c_str());
-        llvm::outs() << a.first << "\n";}
-    }
-
-    //for(auto &x : st) llvm::outs() << x << "\n";
-
-    if(const auto *node = result.Nodes.getNodeAs<FunctionDecl>("x"))
-    {
-        
-    }
-
-    if(node == nullptr)
-        return;
-
-    if(result.SourceManager->isInSystemHeader(node->getSourceRange().getBegin()))
-        return;
-
-    auto &sourceManager = context.getSourceManager();
-    auto location = sourceManager.getPresumedLoc(node->getSourceRange().getBegin());
-    
-    llvm::outs() <<  node->getNameAsString() << " matched \n";*/
 }
 
-XConsumer::XConsumer(clang::ASTContext &context, const std::vector<MCB> &matchers)
+XConsumer::XConsumer(clang::ASTContext &context, const MatcherCallbackCollection &matchers)
     : matchers(matchers)
 {}
 

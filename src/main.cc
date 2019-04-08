@@ -1,13 +1,8 @@
-#include <llvm/Support/CommandLine.h>
-#include <clang/Tooling/CommonOptionsParser.h>
+#include <string>
+#include <boost/python.hpp>
 #include <clang/ASTMatchers/ASTMatchers.h>
 
-#include "actions/frontendaction.h"
-#include "utils/utils.h"
-
-#include <string>
-#include <vector>
-#include <boost/python.hpp>
+#include "tooling.h"
 
 using namespace std;
 using namespace llvm;
@@ -85,6 +80,7 @@ GENERATE_CLANG_WRAPPER(Decl, decl);
 GENERATE_CLANG_WRAPPER(UsingDecl, usingDecl);
 
 GENERATE_CLANG_WRAPPER(AccessSpecDecl, accessSpecDecl);
+GENERATE_CLANG_WRAPPER(AddrLabelExpr, addrLabelExpr);
 
 
 
@@ -123,87 +119,27 @@ GENERATE_CLANG_WRAPPER(AccessSpecDecl, accessSpecDecl);
     class_<decltype(name(arg))>("matcher_" STRINGIFY(name), init<const paramT&>())  \
     
 
-class Tooling
-{
-    private:
-        const std::string filename;
-
-        std::vector<MCB> matchers;
-
-    public:
-        Tooling()
-        {}
-
-        Tooling(const std::string &filename)
-            : filename(filename)
-        {}
-
-        void add(clang::ast_matchers::internal::Matcher<clang::Decl> m, boost::python::object cb)
-        {
-            matchers.push_back({m, cb});
-        }
-
-        void run()
-        {
-            using namespace clang;
-            using namespace clang::tooling;
-            llvm::cl::OptionCategory ctCategory("clang-tool options");
-
-            const char *argv[] = {"exec", filename.c_str(), "--", "-std=c++11"};
-            int argc = 4;
-            CommonOptionsParser optionsParser(argc, argv, ctCategory);
-            for(auto &sourceFile : optionsParser.getSourcePathList())
-            {
-                if(utils::fileExists(sourceFile) == false)
-                {
-                    llvm::errs() << "File: " << sourceFile << " does not exist!\n";
-                    return;
-                }
-
-                auto sourceTxt = utils::getSourceCode(sourceFile);                
-                auto compileCommands = optionsParser.getCompilations().getCompileCommands(getAbsolutePath(sourceFile));
-
-                std::vector<std::string> compileArgs = utils::getCompileArgs(compileCommands);
-                // TODO compileArgs.push_back("-I" + utils::getClangBuiltInIncludePath(argv[0]));
-                compileArgs.push_back("-I/usr/lib/clang/7.0.1/include");
-                //for(auto &s : compileArgs)
-                  //  llvm::outs() << s << "\n";
-
-                auto xfrontendAction = new XFrontendAction(matchers);
-                utils::customRunToolOnCodeWithArgs(xfrontendAction, sourceTxt, compileArgs, sourceFile);
-            }
-        }
-
-        void run_from_source(const std::string &sourceTxt)
-        {
-            using namespace clang;
-            using namespace clang::tooling;
-
-            /*if(sourceTxt.empty())
-            {
-                llvm::errs() << "Source is empty!\n";
-                return;
-            }*/
-
-            std::vector<std::string> compileArgs;
-            // TODO compileArgs.push_back("-I" + utils::getClangBuiltInIncludePath(argv[0]));
-            compileArgs.push_back("-I/usr/lib/clang/7.0.1/include");
-            //for(auto &s : compileArgs)
-                //  llvm::outs() << s << "\n";
-
-            auto xfrontendAction = new XFrontendAction(matchers);
-            utils::customRunToolOnCodeWithArgs(xfrontendAction, sourceTxt, compileArgs, "empty.cc");
-        }
-
-};
-
 BOOST_PYTHON_MODULE(libtooling)
 {
     using namespace boost::python;
 
+    void (Tooling::*add_decl)(clang::ast_matchers::DeclarationMatcher, boost::python::object) = &Tooling::add;
+    void (Tooling::*add_type)(clang::ast_matchers::TypeMatcher, boost::python::object) = &Tooling::add;
+    void (Tooling::*add_stmt)(clang::ast_matchers::StatementMatcher, boost::python::object) = &Tooling::add;
+    void (Tooling::*add_nns)(clang::ast_matchers::NestedNameSpecifierMatcher, boost::python::object) = &Tooling::add;
+    void (Tooling::*add_nnsl)(clang::ast_matchers::NestedNameSpecifierLocMatcher, boost::python::object) = &Tooling::add;
+    void (Tooling::*add_typeloc)(clang::ast_matchers::TypeLocMatcher, boost::python::object) = &Tooling::add;
+    void (Tooling::*add_cxxinit)(clang::ast_matchers::CXXCtorInitializerMatcher, boost::python::object) = &Tooling::add;
+
     class_<Tooling>("Tooling", init<>())
         .def(init<const std::string&>())
-        .def("add", &Tooling::add)
+        .def("add", add_decl)
+        .def("add", add_type)
+        .def("add", add_stmt)
+        .def("add", add_nns)
+        .def("add", add_nnsl)
+        .def("add", add_typeloc)
+        .def("add", add_cxxinit)
         .def("run", &Tooling::run)
         .def("run_from_source", &Tooling::run_from_source)
     ;
@@ -214,6 +150,7 @@ BOOST_PYTHON_MODULE(libtooling)
         using namespace clang::ast_matchers::internal;
 
         EXPOSE_MATCHER(AccessSpecDecl);
+        EXPOSE_MATCHER(AddrLabelExpr);
 
         EXPOSE_MATCHER(Stmt);
         EXPOSE_MATCHER(NamedDecl);
@@ -282,6 +219,11 @@ BOOST_PYTHON_MODULE(libtooling)
         )
     ;
 
+    class_<clang::AddrLabelExpr>("AddrLabelExprImpl", init<const clang::AddrLabelExpr&>());
+    class_<AddrLabelExpr>("AddrLabelExpr")
+        .def("__call__", &AddrLabelExpr::callSimple)
+    ;
+
     class_<clang::CXXMethodDecl>("CxxMethodDeclImpl", init<const clang::CXXMethodDecl&>());
     class_<CXXMethodDecl>("CxxMethodDecl")
         .def("__call__", &CXXMethodDecl::callSimple)
@@ -341,6 +283,9 @@ BOOST_PYTHON_MODULE(libtooling)
 
     AccessSpecDecl accessSpecDecl;
     scope().attr("accessSpecDecl") = accessSpecDecl;
+
+    AddrLabelExpr addrLabelExpr;
+    scope().attr("addrLabelExpr") = addrLabelExpr;
 
     DeclRefExpr declRefExpr;
     scope().attr("declRefExpr") = declRefExpr;

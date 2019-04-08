@@ -20,9 +20,12 @@ def notMatches(src, matcher):
 
 class TestMatchers(unittest.TestCase):
     
-    def test_AccessSpecDecl(self):
+    def test_accessSpecDecl(self):
         self.assertTrue("class C { public: int i; };", accessSpecDecl())    
         self.assertTrue("class C { public: int i; };", accessSpecDecl(isPublic()))
+
+    def test_addrLabelExpr(self):
+       self.assertTrue(matches("void f() { FOO: ; void *ptr = &&FOO; goto *ptr; }", addrLabelExpr()))
 
     def test_usingDecl(self):
         self.assertTrue(notMatches("", decl(usingDecl())))

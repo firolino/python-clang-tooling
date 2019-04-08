@@ -19,6 +19,7 @@ include_directories(${PYTHON_INCLUDE_DIRS})
 
 set(CLANG_TOOL_SRC
         main.cc
+        tooling.cc
         utils/utils.cc
         actions/frontendaction.cc
         consumer/consumer.cc

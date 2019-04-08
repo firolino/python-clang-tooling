@@ -1,5 +1,4 @@
-#ifndef CONSUMER_HPP
-#define CONSUMER_HPP
+#pragma once
 
 #include <clang/AST/ASTContext.h>
 #include <clang/AST/ASTConsumer.h>
@@ -7,7 +6,7 @@
 #include <clang/ASTMatchers/ASTMatchers.h>
 #include <clang/ASTMatchers/ASTMatchFinder.h>
 
-#include "../utils/utils.h"
+#include "../utils/matchercallback.h"
 
 
 namespace clang
@@ -20,11 +19,11 @@ class XConsumer : public clang::ASTConsumer
     private:
     
         clang::Rewriter rewriter;
-        const std::vector<MCB> matchers;
+        const MatcherCallbackCollection matchers;
 
     public:
 
-        explicit XConsumer(clang::ASTContext &context, const std::vector<MCB> &matchers);
+        explicit XConsumer(clang::ASTContext &context, const MatcherCallbackCollection &matchers);
         virtual void HandleTranslationUnit(clang::ASTContext &context) override;
 };
 
@@ -39,9 +38,8 @@ class MMatcher : public clang::ast_matchers::MatchFinder::MatchCallback
 
         explicit MMatcher(clang::ASTContext &context, clang::Rewriter &rewriter);
         
-        virtual void start(const std::vector<MCB> &matchers);
+        virtual void start(const MatcherCallbackCollection &matchers);
         virtual void run(const clang::ast_matchers::MatchFinder::MatchResult &result) override;
 
 };
 
-#endif
