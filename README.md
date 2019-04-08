@@ -28,7 +28,7 @@ Name | Implemented | Tested
 ------------ | ------------- | ------------- 
 accessSpecDecl | :heavy_check_mark: | :heavy_check_mark:
 addrLabelExpr | :heavy_check_mark: | :heavy_check_mark:
-arraySubscriptExpr |  | 
+arraySubscriptExpr | :heavy_check_mark: | :heavy_check_mark:
 arrayType |  | 
 asmStmt |  | 
 atomicExpr |  | 
@@ -123,7 +123,7 @@ incompleteArrayType |  |
 indirectFieldDecl |  | 
 initListExpr |  | 
 injectedClassNameType |  | 
-integerLiteral |  | 
+integerLiteral | :heavy_check_mark: | :heavy_check_mark:
 labelDecl |  | 
 labelStmt |  | 
 lambdaExpr |  | 
@@ -218,7 +218,7 @@ asString | :heavy_check_mark: |
 booleanType |  | 
 declCountIs |  | 
 designatorCountIs |  | 
-equals |  | 
+equals | :heavy_check_mark: | :heavy_check_mark:
 equalsBoundNode |  | 
 equalsIntegralValue |  | 
 equalsNode |  | 
@@ -381,7 +381,7 @@ hasFalseExpression |  |
 hasImplicitDestinationType |  | 
 hasInClassInitializer |  | 
 hasIncrement |  | 
-hasIndex |  | 
+hasIndex | :heavy_check_mark: | :heavy_check_mark:
 hasInit |  | 
 hasInitializer |  | 
 hasLHS |  | 
