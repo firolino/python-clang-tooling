@@ -27,19 +27,3 @@ class XConsumer : public clang::ASTConsumer
         virtual void HandleTranslationUnit(clang::ASTContext &context) override;
 };
 
-class MMatcher : public clang::ast_matchers::MatchFinder::MatchCallback
-{
-    protected:
-
-        clang::ASTContext &context;
-        clang::Rewriter &rewriter;
-
-    public:
-
-        explicit MMatcher(clang::ASTContext &context, clang::Rewriter &rewriter);
-        
-        virtual void start(const MatcherCallbackCollection &matchers);
-        virtual void run(const clang::ast_matchers::MatchFinder::MatchResult &result) override;
-
-};
-
