@@ -4,7 +4,7 @@
 #include <vector>
 #include <boost/python/object.hpp>
 #include <clang/ASTMatchers/ASTMatchers.h>
-#include "utils/matchercallback.h"
+#include "../utils/matchercallback.h"
 
 class Tooling
 {

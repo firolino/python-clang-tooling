@@ -2,7 +2,7 @@
 #include <boost/python.hpp>
 #include <clang/ASTMatchers/ASTMatchers.h>
 
-#include "tooling.h"
+#include "tooling/tooling.h"
 
 using namespace std;
 using namespace llvm;

@@ -2,8 +2,8 @@
 #include <llvm/Support/CommandLine.h>
 #include <clang/Tooling/CommonOptionsParser.h>
 
-#include "utils/utils.h"
-#include "actions/frontendaction.h"
+#include "../utils/utils.h"
+#include "../actions/frontendaction.h"
 
 Tooling::Tooling()
 {}
