@@ -27,6 +27,13 @@ class TestMatchers(unittest.TestCase):
     def test_addrLabelExpr(self):
        self.assertTrue(matches("void f() { FOO: ; void *ptr = &&FOO; goto *ptr; }", addrLabelExpr()))
 
+    def test_arraySubscriptMatchers(self):
+        self.assertTrue(matches("int i[2]; void f() { i[1] = 1; }", arraySubscriptExpr()))
+        self.assertTrue(matches("int i[2]; void f() { i[1] = 1; }", arraySubscriptExpr(hasIndex(integerLiteral(equals(1))))))
+        self.assertTrue(matches("int i[2]; void f() { 1[i] = 1; }",arraySubscriptExpr(hasIndex(integerLiteral(equals(1))))))
+        self.assertTrue(notMatches("int i[2]; void f() { i[1] = 1; }", arraySubscriptExpr(hasIndex(integerLiteral(equals(0))))))
+
+
     def test_usingDecl(self):
         self.assertTrue(notMatches("", decl(usingDecl())))
         self.assertTrue(matches("namespace x { class X {}; } using x::X;", decl(usingDecl())))

@@ -27,7 +27,7 @@ tooling.run()
 Name | Implemented | Tested
 ------------ | ------------- | ------------- 
 accessSpecDecl | :heavy_check_mark: | :heavy_check_mark:
-addrLabelExpr |  | 
+addrLabelExpr | :heavy_check_mark: | :heavy_check_mark:
 arraySubscriptExpr |  | 
 arrayType |  | 
 asmStmt |  | 

@@ -81,7 +81,8 @@ GENERATE_CLANG_WRAPPER(UsingDecl, usingDecl);
 
 GENERATE_CLANG_WRAPPER(AccessSpecDecl, accessSpecDecl);
 GENERATE_CLANG_WRAPPER(AddrLabelExpr, addrLabelExpr);
-
+GENERATE_CLANG_WRAPPER(ArraySubscriptExpr, arraySubscriptExpr);
+GENERATE_CLANG_WRAPPER(IntegerLiteral, integerLiteral);
 
 
 }
@@ -151,6 +152,8 @@ BOOST_PYTHON_MODULE(libtooling)
 
         EXPOSE_MATCHER(AccessSpecDecl);
         EXPOSE_MATCHER(AddrLabelExpr);
+        EXPOSE_MATCHER(ArraySubscriptExpr);
+        EXPOSE_MATCHER(IntegerLiteral);
 
         EXPOSE_MATCHER(Stmt);
         EXPOSE_MATCHER(NamedDecl);
@@ -173,6 +176,9 @@ BOOST_PYTHON_MODULE(libtooling)
         EXPOSE_POLY_MATCHER(argumentCountIs, unsigned int, 0);
         EXPOSE_POLY_MATCHER(hasAnyArgument, Matcher<Expr>, declRefExpr());
         EXPOSE_POLY_MATCHER(hasAnyParameter, Matcher<ParmVarDecl>, hasName(""));
+        EXPOSE_POLY_MATCHER(equals, bool, false);
+        EXPOSE_POLY_MATCHER(equals, unsigned int, 1u);
+        EXPOSE_POLY_MATCHER(equals, double, 0.0);
         
         implicitly_convertible<BindableMatcher<Stmt>, Matcher<Expr>>();
         implicitly_convertible<Matcher<NamedDecl>, Matcher<ParmVarDecl>>();
@@ -183,6 +189,7 @@ BOOST_PYTHON_MODULE(libtooling)
         def("hasName", hasName);
         def("matchesName", matchesName);
         def("isPublic", isPublic);
+        def("hasIndex", hasIndex);
 
 
         class_<BoundNodes>("BoundNodes", init<const BoundNodes&>())
@@ -222,6 +229,28 @@ BOOST_PYTHON_MODULE(libtooling)
     class_<clang::AddrLabelExpr>("AddrLabelExprImpl", init<const clang::AddrLabelExpr&>());
     class_<AddrLabelExpr>("AddrLabelExpr")
         .def("__call__", &AddrLabelExpr::callSimple)
+    ;
+
+    class_<clang::ArraySubscriptExpr>("ArraySubscriptExprImpl", init<const clang::ArraySubscriptExpr&>());
+    class_<ArraySubscriptExpr>("ArraySubscriptExpr")
+        .def("__call__", &ArraySubscriptExpr::callSimple)
+        .def("__call__", 
+            +[](ArraySubscriptExpr &self, clang::ast_matchers::internal::Matcher<clang::ArraySubscriptExpr> decl)
+            {
+                return self.callExtended(decl);
+            }
+        )
+    ;
+
+    class_<clang::IntegerLiteral, boost::noncopyable>("IntegerLiteralImpl", no_init);
+    class_<IntegerLiteral>("IntegerLiteral")
+        .def("__call__", &IntegerLiteral::callSimple)
+        .def("__call__", 
+            +[](IntegerLiteral &self, clang::ast_matchers::internal::Matcher<clang::IntegerLiteral> decl)
+            {
+                return self.callExtended(decl);
+            }
+        )
     ;
 
     class_<clang::CXXMethodDecl>("CxxMethodDeclImpl", init<const clang::CXXMethodDecl&>());
@@ -286,6 +315,12 @@ BOOST_PYTHON_MODULE(libtooling)
 
     AddrLabelExpr addrLabelExpr;
     scope().attr("addrLabelExpr") = addrLabelExpr;
+
+    ArraySubscriptExpr arraySubscriptExpr;
+    scope().attr("arraySubscriptExpr") = arraySubscriptExpr;
+
+    IntegerLiteral integerLiteral;
+    scope().attr("integerLiteral") = integerLiteral;
 
     DeclRefExpr declRefExpr;
     scope().attr("declRefExpr") = declRefExpr;
