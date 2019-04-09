@@ -33,6 +33,24 @@ class TestMatchers(unittest.TestCase):
         self.assertTrue(matches("int i[2]; void f() { 1[i] = 1; }",arraySubscriptExpr(hasIndex(integerLiteral(equals(1))))))
         self.assertTrue(notMatches("int i[2]; void f() { i[1] = 1; }", arraySubscriptExpr(hasIndex(integerLiteral(equals(0))))))
 
+    def test_arrayType(self):
+        self.assertTrue(matches("int a[] = {2,3};", arrayType()))
+        self.assertTrue(matches("int a[42];", arrayType()))
+        self.assertTrue(matches("void f(int b) { int a[b]; }", arrayType()))
+        self.assertTrue(notMatches("struct A {}; A a[7];", arrayType(hasElementType(builtinType()))))
+        self.assertTrue(matches("int const a[] = { 2, 3 };", qualType(arrayType(hasElementType(builtinType())))))
+        """self.assertTrue(matches("int const a[] = { 2, 3 };", qualType(isConstQualified(), arrayType(hasElementType(builtinType())))))
+        self.assertTrue(matches("typedef const int T; T x[] = { 1, 2 };", qualType(isConstQualified(), arrayType())))
+        self.assertTrue(notMatches("int a[] = { 2, 3 };", qualType(isConstQualified(), arrayType(hasElementType(builtinType())))))
+        self.assertTrue(notMatches("int a[] = { 2, 3 };", qualType(arrayType(hasElementType(isConstQualified(), builtinType())))))
+        self.assertTrue(notMatches("int const a[] = { 2, 3 };", qualType(arrayType(hasElementType(builtinType())), unless(isConstQualified()))))
+        self.assertTrue(matches("int a[2];", constantArrayType(hasElementType(builtinType()))))
+        self.assertTrue(matches("const int a = 0;", qualType(isInteger())))
+        self.assertTrue(matches("int a[2];", constantArrayType()))
+        self.assertTrue(notMatches("void f() { int a[] = { 2, 3 }; int b[a[0]]; }", constantArrayType(hasElementType(builtinType()))))
+        self.assertTrue(matches("int a[42];", constantArrayType(hasSize(42))))
+        self.assertTrue(matches("int b[2*21];", constantArrayType(hasSize(42))))
+        self.assertTrue(notMatches("int c[41], d[43];", constantArrayType(hasSize(42))))"""
 
     def test_usingDecl(self):
         self.assertTrue(notMatches("", decl(usingDecl())))

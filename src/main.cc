@@ -5,7 +5,6 @@
 #include "tooling/tooling.h"
 
 using namespace std;
-using namespace llvm;
 
 template<typename From, typename T, typename... Args>
 struct implicitly_convertible_helper_run
@@ -83,6 +82,9 @@ GENERATE_CLANG_WRAPPER(AccessSpecDecl, accessSpecDecl);
 GENERATE_CLANG_WRAPPER(AddrLabelExpr, addrLabelExpr);
 GENERATE_CLANG_WRAPPER(ArraySubscriptExpr, arraySubscriptExpr);
 GENERATE_CLANG_WRAPPER(IntegerLiteral, integerLiteral);
+GENERATE_CLANG_WRAPPER(ArrayType, arrayType);
+GENERATE_CLANG_WRAPPER(BuiltinType, builtinType);
+GENERATE_CLANG_WRAPPER(QualType, qualType);
 
 
 }
@@ -105,14 +107,30 @@ GENERATE_CLANG_WRAPPER(IntegerLiteral, integerLiteral);
         ;                                                                           \
 
 #define EXPOSE_POLY_MATCHER(name, paramT, arg)                                      \
-        def(STRINGIFY(name),                                                        \
+    def(STRINGIFY(name),                                                        \
         +[](const paramT &param1)                                                   \
-    {                                                                               \
+        {                                                                           \
             return name(param1);                                                    \
         }                                                                           \
     );                                                                              \
                                                                                     \
     class_<decltype(name(arg))>("matcher_" STRINGIFY(name), init<const paramT&>()); \
+    implicitly_convertible_helper<decltype(name(arg))>()
+
+#define EXPOSE_TYPE_MATCHER(name, arg)                                                   \
+    def(STRINGIFY(name),                                                            \
+        +[]()                                                                       \
+        {                                                                           \
+            return name();                                                          \
+        }                                                                           \
+    );                                                                              \
+    def(STRINGIFY(name),                                                            \
+        +[](BindableMatcher<Type> bm)                                                             \
+        {                                                                           \
+            return name(bm);                                                          \
+        }                                                                           \
+    );\
+    class_<decltype(name(arg))>("typematcher_" STRINGIFY(name), init<ArrayRef<const Matcher<QualType>*>>());\
     implicitly_convertible_helper<decltype(name(arg))>()
 
 #define EXPOSE_MATCHER_P1(name, paramT, arg)                                        \
@@ -163,10 +181,16 @@ BOOST_PYTHON_MODULE(libtooling)
         EXPOSE_MATCHER(QualType);
         EXPOSE_MATCHER(TemplateArgument);
         EXPOSE_MATCHER(FunctionDecl);
+        EXPOSE_MATCHER(Type);
+        //EXPOSE_MATCHER(ArrayType);
+//Matcher<ArrayType> x = hasElementType(builtinType());
+        //class_<AstTypeMatcher<ArrayType>>("AstTypeMatcher_ArrayType");
 
         EXPOSE_BINDABLE_MATCHER(Stmt);
         EXPOSE_BINDABLE_MATCHER(FunctionDecl);
         EXPOSE_BINDABLE_MATCHER(Decl);
+        EXPOSE_BINDABLE_MATCHER(Type);
+        EXPOSE_BINDABLE_MATCHER(QualType);
         
         EXPOSE_POLY_MATCHER(hasType, Matcher<QualType>, isInteger());
         EXPOSE_POLY_MATCHER(isExpansionInFileMatching, std::string, "");
@@ -181,6 +205,7 @@ BOOST_PYTHON_MODULE(libtooling)
         EXPOSE_POLY_MATCHER(equals, double, 0.0);
         
         implicitly_convertible<BindableMatcher<Stmt>, Matcher<Expr>>();
+        implicitly_convertible<BindableMatcher<Type>, Matcher<QualType>>();
         implicitly_convertible<Matcher<NamedDecl>, Matcher<ParmVarDecl>>();
 
         def("asString", asString);
@@ -190,6 +215,8 @@ BOOST_PYTHON_MODULE(libtooling)
         def("matchesName", matchesName);
         def("isPublic", isPublic);
         def("hasIndex", hasIndex);
+
+        EXPOSE_TYPE_MATCHER(hasElementType, builtinType());        
 
 
         class_<BoundNodes>("BoundNodes", init<const BoundNodes&>())
@@ -236,6 +263,39 @@ BOOST_PYTHON_MODULE(libtooling)
         .def("__call__", &ArraySubscriptExpr::callSimple)
         .def("__call__", 
             +[](ArraySubscriptExpr &self, clang::ast_matchers::internal::Matcher<clang::ArraySubscriptExpr> decl)
+            {
+                return self.callExtended(decl);
+            }
+        )
+    ;
+
+    class_<clang::ArrayType, boost::noncopyable>("ArrayTypeImpl", no_init);
+    class_<ArrayType>("ArrayType")
+        .def("__call__", &ArrayType::callSimple)
+        .def("__call__", 
+            +[](ArrayType &self, clang::ast_matchers::internal::Matcher<clang::ArrayType> decl)
+            {
+                return self.callExtended(decl);
+            }
+        )
+    ;
+
+    class_<clang::QualType, boost::noncopyable>("QualTypeImpl", no_init);
+    class_<QualType>("QualType")
+        .def("__call__", &QualType::callSimple)
+        .def("__call__", 
+            +[](QualType &self, clang::ast_matchers::internal::Matcher<clang::QualType> decl)
+            {
+                return self.callExtended(decl);
+            }
+        )
+    ;
+
+    class_<clang::BuiltinType, boost::noncopyable>("BuiltinTypeImpl", no_init);
+    class_<BuiltinType>("BuiltinType")
+        .def("__call__", &BuiltinType::callSimple)
+        .def("__call__", 
+            +[](BuiltinType &self, clang::ast_matchers::internal::Matcher<clang::BuiltinType> decl)
             {
                 return self.callExtended(decl);
             }
@@ -321,6 +381,15 @@ BOOST_PYTHON_MODULE(libtooling)
 
     IntegerLiteral integerLiteral;
     scope().attr("integerLiteral") = integerLiteral;
+
+    ArrayType arrayType;
+    scope().attr("arrayType") = arrayType;
+
+    BuiltinType builtinType;
+    scope().attr("builtinType") = builtinType;
+
+    QualType qualType;
+    scope().attr("qualType") = qualType;
 
     DeclRefExpr declRefExpr;
     scope().attr("declRefExpr") = declRefExpr;
