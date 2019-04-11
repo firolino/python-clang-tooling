@@ -52,6 +52,9 @@ class TestMatchers(unittest.TestCase):
         self.assertTrue(matches("int b[2*21];", constantArrayType(hasSize(42))))
         self.assertTrue(notMatches("int c[41], d[43];", constantArrayType(hasSize(42))))
 
+    def test_unless(self):
+        unless(isImplicit())
+
     def test_usingDecl(self):
         self.assertTrue(notMatches("", decl(usingDecl())))
         self.assertTrue(matches("namespace x { class X {}; } using x::X;", decl(usingDecl())))

@@ -219,13 +219,20 @@ BOOST_PYTHON_MODULE(libtooling)
         def("isPublic", isPublic);
         def("hasIndex", hasIndex);
         def("isConstQualified", isConstQualified);
+        def("isImplicit", isImplicit);
 
         def("unless", 
             +[](Matcher<QualType> &arg1)
             {
                 return Matcher<QualType>(unless(arg1));
             }
-        );        
+        );  
+        def("unless", 
+            +[](Matcher<Decl> &arg1)
+            {
+                return Matcher<Decl>(unless(arg1));
+            }
+        );
 
         EXPOSE_TYPE_MATCHER(hasElementType, builtinType());        
 

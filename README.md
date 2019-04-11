@@ -276,7 +276,7 @@ isExplicit |  |
 isExplicitTemplateSpecialization |  | 
 isExternC |  | 
 isFinal |  | 
-isImplicit |  | 
+isImplicit | :heavy_check_mark: | :heavy_check_mark:
 isInline |  | 
 isInstanceMessage |  | 
 isInstantiated |  | 
