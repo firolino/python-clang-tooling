@@ -58,15 +58,10 @@ namespace pywrappers
 #define GENERATE_CLANG_WRAPPER(name, func)                                      \
 struct name                                                                     \
 {                                                                               \
-    auto callSimple()                                                           \
+    template<typename... ArgsT>                                                 \
+    auto call(const ArgsT &... args)                                    \
     {                                                                           \
-        return clang::ast_matchers::func();                                     \
-    }                                                                           \
-                                                                                \
-    template<typename T>                                                        \
-    auto callExtended(const clang::ast_matchers::internal::Matcher<T>& o)       \
-    {                                                                           \
-        return clang::ast_matchers::func(o);                                    \
+        return clang::ast_matchers::func(args...);                              \
     }                                                                           \
 }
 
@@ -85,6 +80,7 @@ GENERATE_CLANG_WRAPPER(IntegerLiteral, integerLiteral);
 GENERATE_CLANG_WRAPPER(ArrayType, arrayType);
 GENERATE_CLANG_WRAPPER(BuiltinType, builtinType);
 GENERATE_CLANG_WRAPPER(QualType, qualType);
+GENERATE_CLANG_WRAPPER(ConstantArrayType, constantArrayType);
 
 
 }
@@ -125,9 +121,15 @@ GENERATE_CLANG_WRAPPER(QualType, qualType);
         }                                                                           \
     );                                                                              \
     def(STRINGIFY(name),                                                            \
-        +[](BindableMatcher<Type> bm)                                                             \
+        +[](Matcher<QualType> bm)                                                             \
         {                                                                           \
             return name(bm);                                                          \
+        }                                                                           \
+    );\
+    def(STRINGIFY(name),                                                            \
+        +[](Matcher<QualType> arg1, Matcher<QualType> arg2)                                                             \
+        {                                                                           \
+            return name(arg1, arg2);                                                          \
         }                                                                           \
     );\
     class_<decltype(name(arg))>("typematcher_" STRINGIFY(name), init<ArrayRef<const Matcher<QualType>*>>());\
@@ -186,6 +188,10 @@ BOOST_PYTHON_MODULE(libtooling)
 //Matcher<ArrayType> x = hasElementType(builtinType());
         //class_<AstTypeMatcher<ArrayType>>("AstTypeMatcher_ArrayType");
 
+        //int x = isConstQualified();
+        //int y = builtinType();
+        //hasElementType(isConstQualified(), builtinType());
+
         EXPOSE_BINDABLE_MATCHER(Stmt);
         EXPOSE_BINDABLE_MATCHER(FunctionDecl);
         EXPOSE_BINDABLE_MATCHER(Decl);
@@ -203,6 +209,8 @@ BOOST_PYTHON_MODULE(libtooling)
         EXPOSE_POLY_MATCHER(equals, bool, false);
         EXPOSE_POLY_MATCHER(equals, unsigned int, 1u);
         EXPOSE_POLY_MATCHER(equals, double, 0.0);
+        EXPOSE_POLY_MATCHER(hasSize, unsigned int, 0);
+
         
         implicitly_convertible<BindableMatcher<Stmt>, Matcher<Expr>>();
         implicitly_convertible<BindableMatcher<Type>, Matcher<QualType>>();
@@ -215,6 +223,14 @@ BOOST_PYTHON_MODULE(libtooling)
         def("matchesName", matchesName);
         def("isPublic", isPublic);
         def("hasIndex", hasIndex);
+        def("isConstQualified", isConstQualified);
+
+        def("unless", 
+            +[](Matcher<QualType> &arg1)
+            {
+                return Matcher<QualType>(unless(arg1));
+            }
+        );        
 
         EXPOSE_TYPE_MATCHER(hasElementType, builtinType());        
 
@@ -244,128 +260,227 @@ BOOST_PYTHON_MODULE(libtooling)
 
     class_<clang::AccessSpecDecl>("AccessSpecDeclImpl", init<const clang::AccessSpecDecl&>());
     class_<AccessSpecDecl>("AccessSpecDecl")
-        .def("__call__", &AccessSpecDecl::callSimple)
+        .def("__call__", 
+            +[](AccessSpecDecl &self)
+            {
+                return self.call();
+            }
+        )
         .def("__call__", 
             +[](AccessSpecDecl &self, clang::ast_matchers::internal::Matcher<clang::Decl> decl)
             {
-                return self.callExtended(decl);
+                return self.call(decl);
             }
         )
     ;
 
     class_<clang::AddrLabelExpr>("AddrLabelExprImpl", init<const clang::AddrLabelExpr&>());
     class_<AddrLabelExpr>("AddrLabelExpr")
-        .def("__call__", &AddrLabelExpr::callSimple)
+        .def("__call__", 
+            +[](AddrLabelExpr &self)
+            {
+                return self.call();
+            }
+        )
     ;
 
     class_<clang::ArraySubscriptExpr>("ArraySubscriptExprImpl", init<const clang::ArraySubscriptExpr&>());
     class_<ArraySubscriptExpr>("ArraySubscriptExpr")
-        .def("__call__", &ArraySubscriptExpr::callSimple)
+        .def("__call__", 
+            +[](ArraySubscriptExpr &self)
+            {
+                return self.call();
+            }
+        )
         .def("__call__", 
             +[](ArraySubscriptExpr &self, clang::ast_matchers::internal::Matcher<clang::ArraySubscriptExpr> decl)
             {
-                return self.callExtended(decl);
+                return self.call(decl);
             }
         )
     ;
 
     class_<clang::ArrayType, boost::noncopyable>("ArrayTypeImpl", no_init);
     class_<ArrayType>("ArrayType")
-        .def("__call__", &ArrayType::callSimple)
+        .def("__call__", 
+            +[](ArrayType &self)
+            {
+                return self.call();
+            }
+        )
         .def("__call__", 
             +[](ArrayType &self, clang::ast_matchers::internal::Matcher<clang::ArrayType> decl)
             {
-                return self.callExtended(decl);
+                return self.call(decl);
             }
         )
     ;
 
-    class_<clang::QualType, boost::noncopyable>("QualTypeImpl", no_init);
+    class_<clang::ConstantArrayType, boost::noncopyable>("ConstantArrayTypeImpl", no_init);
+    class_<ConstantArrayType>("ConstantArrayType")
+        .def("__call__", 
+            +[](ConstantArrayType &self)
+            {
+                return self.call();
+            }
+        )
+        .def("__call__", 
+            +[](ConstantArrayType &self, clang::ast_matchers::internal::Matcher<clang::ConstantArrayType> decl)
+            {
+                return self.call(decl);
+            }
+        )
+        .def("__call__", 
+            +[](ConstantArrayType &self, clang::ast_matchers::internal::Matcher<clang::ArrayType> decl)
+            {
+                return self.call(decl);
+            }
+        )
+    ;
+
+    class_<clang::QualType>("QualTypeImpl", no_init);
     class_<QualType>("QualType")
-        .def("__call__", &QualType::callSimple)
+        .def("__call__", 
+            +[](QualType &self)
+            {
+                return self.call();
+            }
+        )
         .def("__call__", 
             +[](QualType &self, clang::ast_matchers::internal::Matcher<clang::QualType> decl)
             {
-                return self.callExtended(decl);
+                return self.call(decl);
+            }
+        )
+
+        .def("__call__", 
+            +[](QualType &self, clang::ast_matchers::internal::Matcher<clang::QualType> decl, clang::ast_matchers::internal::Matcher<clang::QualType> decl2)
+            {
+                return self.call(decl, decl2);
             }
         )
     ;
 
     class_<clang::BuiltinType, boost::noncopyable>("BuiltinTypeImpl", no_init);
     class_<BuiltinType>("BuiltinType")
-        .def("__call__", &BuiltinType::callSimple)
+        .def("__call__", 
+            +[](BuiltinType &self)
+            {
+                return self.call();
+            }
+        )
         .def("__call__", 
             +[](BuiltinType &self, clang::ast_matchers::internal::Matcher<clang::BuiltinType> decl)
             {
-                return self.callExtended(decl);
+                return self.call(decl);
             }
         )
     ;
 
     class_<clang::IntegerLiteral, boost::noncopyable>("IntegerLiteralImpl", no_init);
     class_<IntegerLiteral>("IntegerLiteral")
-        .def("__call__", &IntegerLiteral::callSimple)
+        .def("__call__", 
+            +[](IntegerLiteral &self)
+            {
+                return self.call();
+            }
+        )
         .def("__call__", 
             +[](IntegerLiteral &self, clang::ast_matchers::internal::Matcher<clang::IntegerLiteral> decl)
             {
-                return self.callExtended(decl);
+                return self.call(decl);
             }
         )
     ;
 
     class_<clang::CXXMethodDecl>("CxxMethodDeclImpl", init<const clang::CXXMethodDecl&>());
     class_<CXXMethodDecl>("CxxMethodDecl")
-        .def("__call__", &CXXMethodDecl::callSimple)
+        .def("__call__", 
+            +[](CXXMethodDecl &self)
+            {
+                return self.call();
+            }
+        )
     ;
 
     class_<clang::DeclRefExpr>("DeclRefExprImpl", init<const clang::DeclRefExpr&>());
     class_<DeclRefExpr>("DeclRefExpr")
-        .def("__call__", &DeclRefExpr::callSimple)
+        .def("__call__", 
+            +[](DeclRefExpr &self)
+            {
+                return self.call();
+            }
+        )
     ;
 
     class_<Decl>("Decl")
-        .def("__call__", &Decl::callSimple)
+        .def("__call__", 
+            +[](Decl &self)
+            {
+                return self.call();
+            }
+        )
         .def("__call__", 
             +[](Decl &self, clang::ast_matchers::internal::Matcher<clang::Decl> decl)
             {
-                return self.callExtended(decl);
+                return self.call(decl);
             }
         )
     ;
 
     class_<UsingDecl>("UsingDecl")
-        .def("__call__", &UsingDecl::callSimple)        
+        .def("__call__", 
+            +[](UsingDecl &self)
+            {
+                return self.call();
+            }
+        )        
     ;
 
     class_<clang::FunctionDecl>("FunctionDeclImpl", init<const clang::FunctionDecl&>());
     class_<FunctionDecl>("FunctionDecl")
-        .def("__call__", &FunctionDecl::callSimple)
+        .def("__call__", 
+            +[](FunctionDecl &self)
+            {
+                return self.call();
+            }
+        )
         .def("__call__", 
             +[](FunctionDecl &self, clang::ast_matchers::internal::Matcher<clang::NamedDecl> namedDecl)
             {
-                return self.callExtended(namedDecl);
+                return self.call(namedDecl);
             }
         )
     ;
 
     class_<clang::VarDecl>("VarDeclImpl", init<const clang::VarDecl&>());
     class_<VarDecl>("VarDecl")
-        .def("__call__", &VarDecl::callSimple)
+        .def("__call__", 
+            +[](VarDecl &self)
+            {
+                return self.call();
+            }
+        )
         .def("__call__", 
             +[](VarDecl &self, clang::ast_matchers::internal::Matcher<clang::ValueDecl> namedDecl)
             {
-                return self.callExtended(namedDecl);
+                return self.call(namedDecl);
             }
         )
     ;
 
     class_<clang::NamedDecl>("NamedDeclImpl", init<const clang::NamedDecl&>());
     class_<NamedDecl>("NamedDecl")
-        .def("__call__", &NamedDecl::callSimple)
+        .def("__call__", 
+            +[](NamedDecl &self)
+            {
+                return self.call();
+            }
+        )
         .def("__call__", 
             +[](NamedDecl &self, clang::ast_matchers::internal::Matcher<clang::NamedDecl> namedDecl)
             {
-                return self.callExtended(namedDecl);
+                return self.call(namedDecl);
             }
         )
     ;
@@ -384,6 +499,9 @@ BOOST_PYTHON_MODULE(libtooling)
 
     ArrayType arrayType;
     scope().attr("arrayType") = arrayType;
+
+    ConstantArrayType constantArrayType;
+    scope().attr("constantArrayType") = constantArrayType;
 
     BuiltinType builtinType;
     scope().attr("builtinType") = builtinType;

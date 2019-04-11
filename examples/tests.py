@@ -39,7 +39,7 @@ class TestMatchers(unittest.TestCase):
         self.assertTrue(matches("void f(int b) { int a[b]; }", arrayType()))
         self.assertTrue(notMatches("struct A {}; A a[7];", arrayType(hasElementType(builtinType()))))
         self.assertTrue(matches("int const a[] = { 2, 3 };", qualType(arrayType(hasElementType(builtinType())))))
-        """self.assertTrue(matches("int const a[] = { 2, 3 };", qualType(isConstQualified(), arrayType(hasElementType(builtinType())))))
+        self.assertTrue(matches("int const a[] = { 2, 3 };", qualType(isConstQualified(), arrayType(hasElementType(builtinType())))))
         self.assertTrue(matches("typedef const int T; T x[] = { 1, 2 };", qualType(isConstQualified(), arrayType())))
         self.assertTrue(notMatches("int a[] = { 2, 3 };", qualType(isConstQualified(), arrayType(hasElementType(builtinType())))))
         self.assertTrue(notMatches("int a[] = { 2, 3 };", qualType(arrayType(hasElementType(isConstQualified(), builtinType())))))
@@ -50,7 +50,7 @@ class TestMatchers(unittest.TestCase):
         self.assertTrue(notMatches("void f() { int a[] = { 2, 3 }; int b[a[0]]; }", constantArrayType(hasElementType(builtinType()))))
         self.assertTrue(matches("int a[42];", constantArrayType(hasSize(42))))
         self.assertTrue(matches("int b[2*21];", constantArrayType(hasSize(42))))
-        self.assertTrue(notMatches("int c[41], d[43];", constantArrayType(hasSize(42))))"""
+        self.assertTrue(notMatches("int c[41], d[43];", constantArrayType(hasSize(42))))
 
     def test_usingDecl(self):
         self.assertTrue(notMatches("", decl(usingDecl())))
