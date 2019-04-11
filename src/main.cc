@@ -174,7 +174,7 @@ BOOST_PYTHON_MODULE(libtooling)
         EXPOSE_MATCHER(AddrLabelExpr);
         EXPOSE_MATCHER(ArraySubscriptExpr);
         EXPOSE_MATCHER(IntegerLiteral);
-
+//int x = arrayType().bind("");
         EXPOSE_MATCHER(Stmt);
         EXPOSE_MATCHER(NamedDecl);
         EXPOSE_MATCHER(Decl);
@@ -184,13 +184,6 @@ BOOST_PYTHON_MODULE(libtooling)
         EXPOSE_MATCHER(TemplateArgument);
         EXPOSE_MATCHER(FunctionDecl);
         EXPOSE_MATCHER(Type);
-        //EXPOSE_MATCHER(ArrayType);
-//Matcher<ArrayType> x = hasElementType(builtinType());
-        //class_<AstTypeMatcher<ArrayType>>("AstTypeMatcher_ArrayType");
-
-        //int x = isConstQualified();
-        //int y = builtinType();
-        //hasElementType(isConstQualified(), builtinType());
 
         EXPOSE_BINDABLE_MATCHER(Stmt);
         EXPOSE_BINDABLE_MATCHER(FunctionDecl);
@@ -210,11 +203,13 @@ BOOST_PYTHON_MODULE(libtooling)
         EXPOSE_POLY_MATCHER(equals, unsigned int, 1u);
         EXPOSE_POLY_MATCHER(equals, double, 0.0);
         EXPOSE_POLY_MATCHER(hasSize, unsigned int, 0);
-
         
         implicitly_convertible<BindableMatcher<Stmt>, Matcher<Expr>>();
         implicitly_convertible<BindableMatcher<Type>, Matcher<QualType>>();
         implicitly_convertible<Matcher<NamedDecl>, Matcher<ParmVarDecl>>();
+        implicitly_convertible<Matcher<Type>, Matcher<QualType>>();
+        implicitly_convertible<Matcher<Stmt>, Matcher<Expr>>();
+
 
         def("asString", asString);
         def("refersToType", refersToType);
@@ -352,7 +347,6 @@ BOOST_PYTHON_MODULE(libtooling)
                 return self.call(decl);
             }
         )
-
         .def("__call__", 
             +[](QualType &self, clang::ast_matchers::internal::Matcher<clang::QualType> decl, clang::ast_matchers::internal::Matcher<clang::QualType> decl2)
             {

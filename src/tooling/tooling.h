@@ -23,7 +23,7 @@ class Tooling
         void add(clang::ast_matchers::NestedNameSpecifierLocMatcher matcher, boost::python::object cb);
         void add(clang::ast_matchers::TypeLocMatcher matcher, boost::python::object cb);
         void add(clang::ast_matchers::CXXCtorInitializerMatcher matcher, boost::python::object cb);
-
+        
         void run();
         void run_from_source(const std::string &sourceTxt);
 };
