@@ -29,7 +29,7 @@ Name | Implemented | Tested
 accessSpecDecl | :heavy_check_mark: | :heavy_check_mark:
 addrLabelExpr | :heavy_check_mark: | :heavy_check_mark:
 arraySubscriptExpr | :heavy_check_mark: | :heavy_check_mark:
-arrayType |  | 
+arrayType | :heavy_check_mark: | :heavy_check_mark:
 asmStmt |  | 
 atomicExpr |  | 
 atomicType |  | 
@@ -41,7 +41,7 @@ blockDecl |  |
 blockExpr |  | 
 blockPointerType |  | 
 breakStmt |  | 
-builtinType |  | 
+builtinType | :heavy_check_mark: | :heavy_check_mark:
 callExpr |  | 
 caseStmt |  | 
 castExpr |  | 
@@ -54,7 +54,7 @@ complexType |  |
 compoundLiteralExpr |  | 
 compoundStmt |  | 
 conditionalOperator |  | 
-constantArrayType |  | 
+constantArrayType | :heavy_check_mark: | :heavy_check_mark:
 constantExpr |  | 
 continueStmt |  | 
 cStyleCastExpr |  | 
@@ -163,7 +163,7 @@ parenType |  |
 parmVarDecl |  | 
 pointerType |  | 
 predefinedExpr |  | 
-qualType |  | 
+qualType | :heavy_check_mark: | :heavy_check_mark:
 recordDecl |  | 
 recordType |  | 
 referenceType |  | 
@@ -241,7 +241,7 @@ hasNullSelector |  |
 hasOperatorName |  | 
 hasOverloadedOperatorName |  | 
 hasSelector |  | 
-hasSize |  | 
+hasSize | :heavy_check_mark: | :heavy_check_mark:
 hasStaticStorageDuration |  | 
 hasThreadStorageDuration |  | 
 hasTrailingReturn |  | 
@@ -259,7 +259,7 @@ isCatchAll |  |
 isClass |  | 
 isConst |  | 
 isConstexpr |  | 
-isConstQualified |  | 
+isConstQualified | :heavy_check_mark: | :heavy_check_mark:
 isCopyAssignmentOperator |  | 
 isCopyConstructor |  | 
 isDefaultConstructor |  | 
@@ -328,7 +328,7 @@ realFloatingPointType |  |
 requiresZeroInitialization |  | 
 statementCountIs |  | 
 templateArgumentCountIs | :heavy_check_mark: | 
-unless |  | 
+unless | :heavy_check_mark: | :heavy_check_mark:
 usesADL |  | 
 voidType |  | 
 
@@ -375,7 +375,7 @@ hasDeducedType |  |
 hasDescendant |  | 
 hasDestinationType |  | 
 hasEitherOperand |  | 
-hasElementType |  | 
+hasElementType | :heavy_check_mark: | :heavy_check_mark:
 hasElse |  | 
 hasFalseExpression |  | 
 hasImplicitDestinationType |  | 
