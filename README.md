@@ -30,9 +30,9 @@ accessSpecDecl | :heavy_check_mark: | :heavy_check_mark:
 addrLabelExpr | :heavy_check_mark: | :heavy_check_mark:
 arraySubscriptExpr | :heavy_check_mark: | :heavy_check_mark:
 arrayType | :heavy_check_mark: | :heavy_check_mark:
-asmStmt |  | 
-atomicExpr |  | 
-atomicType |  | 
+asmStmt | :heavy_check_mark: | :heavy_check_mark:
+atomicExpr | :heavy_check_mark: | :heavy_check_mark:
+atomicType | :heavy_check_mark: | :heavy_check_mark:
 autoreleasePoolStmt |  | 
 autoType |  | 
 binaryConditionalOperator |  | 
@@ -415,7 +415,7 @@ hasUnaryOperand |  |
 hasUnderlyingDecl |  | 
 hasUnderlyingType |  | 
 hasUnqualifiedDesugaredType |  | 
-hasValueType |  | 
+hasValueType | :heavy_check_mark: | :heavy_check_mark:
 ignoringImpCasts |  | 
 ignoringImplicit |  | 
 ignoringParenCasts |  | 

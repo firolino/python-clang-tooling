@@ -81,6 +81,10 @@ GENERATE_CLANG_WRAPPER(ArrayType, arrayType);
 GENERATE_CLANG_WRAPPER(BuiltinType, builtinType);
 GENERATE_CLANG_WRAPPER(QualType, qualType);
 GENERATE_CLANG_WRAPPER(ConstantArrayType, constantArrayType);
+GENERATE_CLANG_WRAPPER(AsmStmt, asmStmt);
+GENERATE_CLANG_WRAPPER(AtomicType, atomicType);
+GENERATE_CLANG_WRAPPER(AtomicExpr, atomicExpr);
+
 
 
 }
@@ -113,7 +117,7 @@ GENERATE_CLANG_WRAPPER(ConstantArrayType, constantArrayType);
     class_<decltype(name(arg))>("matcher_" STRINGIFY(name), init<const paramT&>()); \
     implicitly_convertible_helper<decltype(name(arg))>()
 
-#define EXPOSE_TYPE_MATCHER(name, arg)                                                   \
+#define EXPOSE_TYPE_TRAVERSE_MATCHER(name, arg)                                                   \
     def(STRINGIFY(name),                                                            \
         +[]()                                                                       \
         {                                                                           \
@@ -174,6 +178,8 @@ BOOST_PYTHON_MODULE(libtooling)
         EXPOSE_MATCHER(AddrLabelExpr);
         EXPOSE_MATCHER(ArraySubscriptExpr);
         EXPOSE_MATCHER(IntegerLiteral);
+        EXPOSE_MATCHER(AsmStmt);
+        EXPOSE_MATCHER(AtomicExpr);
 //int x = arrayType().bind("");
         EXPOSE_MATCHER(Stmt);
         EXPOSE_MATCHER(NamedDecl);
@@ -234,7 +240,8 @@ BOOST_PYTHON_MODULE(libtooling)
             }
         );
 
-        EXPOSE_TYPE_MATCHER(hasElementType, builtinType());        
+        EXPOSE_TYPE_TRAVERSE_MATCHER(hasElementType, builtinType());        
+        EXPOSE_TYPE_TRAVERSE_MATCHER(hasValueType, isInteger());        
 
 
         class_<BoundNodes>("BoundNodes", init<const BoundNodes&>())
@@ -318,6 +325,22 @@ BOOST_PYTHON_MODULE(libtooling)
         )
     ;
 
+    class_<clang::AtomicType, boost::noncopyable>("AtomicTypeImpl", no_init);
+    class_<AtomicType>("AtomicType")
+        .def("__call__", 
+            +[](AtomicType &self)
+            {
+                return self.call();
+            }
+        )
+        .def("__call__", 
+            +[](AtomicType &self, clang::ast_matchers::internal::Matcher<clang::AtomicType> decl)
+            {
+                return self.call(decl);
+            }
+        )
+    ;
+
     class_<clang::ConstantArrayType, boost::noncopyable>("ConstantArrayTypeImpl", no_init);
     class_<ConstantArrayType>("ConstantArrayType")
         .def("__call__", 
@@ -390,6 +413,26 @@ BOOST_PYTHON_MODULE(libtooling)
             +[](IntegerLiteral &self, clang::ast_matchers::internal::Matcher<clang::IntegerLiteral> decl)
             {
                 return self.call(decl);
+            }
+        )
+    ;
+
+    class_<clang::AsmStmt, boost::noncopyable>("AsmStmtImpl", no_init);
+    class_<AsmStmt>("AsmStmt")
+        .def("__call__", 
+            +[](AsmStmt &self)
+            {
+                return self.call();
+            }
+        )
+    ;
+
+    class_<clang::AtomicExpr, boost::noncopyable>("AtomicExprImpl", no_init);
+    class_<AtomicExpr>("AtomicExpr")
+        .def("__call__", 
+            +[](AtomicExpr &self)
+            {
+                return self.call();
             }
         )
     ;
@@ -498,8 +541,17 @@ BOOST_PYTHON_MODULE(libtooling)
     IntegerLiteral integerLiteral;
     scope().attr("integerLiteral") = integerLiteral;
 
+    AsmStmt asmStmt;
+    scope().attr("asmStmt") = asmStmt;
+
     ArrayType arrayType;
     scope().attr("arrayType") = arrayType;
+
+    AtomicExpr atomicExpr;
+    scope().attr("atomicExpr") = atomicExpr;
+
+    AtomicType atomicType;
+    scope().attr("atomicType") = atomicType;
 
     ConstantArrayType constantArrayType;
     scope().attr("constantArrayType") = constantArrayType;

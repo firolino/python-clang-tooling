@@ -54,6 +54,15 @@ class TestMatchers(unittest.TestCase):
 
     def test_unless(self):
         unless(isImplicit())
+    
+    def test_asmStatement(self):
+        self.assertTrue(matches("void foo() { __asm(\"mov al, 2\"); }", asmStmt()))
+
+    def test_atomic(self):
+        self.assertTrue(matches("void foo() { int *ptr; __atomic_load_n(ptr, 1); }", atomicExpr()))
+        self.assertTrue(matches("_Atomic(int) i;", atomicType()))
+        self.assertTrue(matches("_Atomic(int) i;", atomicType(hasValueType(isInteger()))))
+        self.assertTrue(notMatches("_Atomic(float) f;", atomicType(hasValueType(isInteger()))))
 
     def test_usingDecl(self):
         self.assertTrue(notMatches("", decl(usingDecl())))
