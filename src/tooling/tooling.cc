@@ -69,7 +69,7 @@ void Tooling::run()
 
         std::vector<std::string> compileArgs = utils::getCompileArgs(compileCommands);
         // TODO compileArgs.push_back("-I" + utils::getClangBuiltInIncludePath(argv[0]));
-        compileArgs.push_back("-I/usr/lib/clang/7.0.1/include");
+        //compileArgs.push_back("-I/usr/lib/clang/8.0.0/include");
         //for(auto &s : compileArgs)
             //  llvm::outs() << s << "\n";
 
@@ -91,7 +91,7 @@ void Tooling::run_from_source(const std::string &sourceTxt)
 
     std::vector<std::string> compileArgs;
     // TODO compileArgs.push_back("-I" + utils::getClangBuiltInIncludePath(argv[0]));
-    compileArgs.push_back("-I/usr/lib/clang/7.0.1/include");
+    //compileArgs.push_back("-I/usr/lib/clang/8.0.0/include");
     //for(auto &s : compileArgs)
         //  llvm::outs() << s << "\n";
 
