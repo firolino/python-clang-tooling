@@ -19,6 +19,8 @@ include_directories(${PYTHON_INCLUDE_DIRS})
 
 set(CLANG_TOOL_SRC
         main.cc
+        node-matcher.cc
+        bound-nodes.cc
         tooling/tooling.cc
         utils/utils.cc
         actions/frontendaction.cc
