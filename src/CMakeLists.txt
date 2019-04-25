@@ -21,6 +21,7 @@ set(CLANG_TOOL_SRC
         main.cc
         node-matcher.cc
         bound-nodes.cc
+        wrapper-expose.cc
         tooling/tooling.cc
         utils/utils.cc
         actions/frontendaction.cc
