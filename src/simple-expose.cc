@@ -178,6 +178,12 @@ void expose_simple()
     def("hasPrefix", hasPrefix_1);
     def("hasPrefix", hasPrefix_2);
 
+    Matcher<CXXMemberCallExpr> (*thisPointerType_1)(const Matcher<QualType>&) = thisPointerType;
+    Matcher<CXXMemberCallExpr> (*thisPointerType_2)(const Matcher<Decl>&) = thisPointerType;
+
+    def("thisPointerType", thisPointerType_1);
+    def("thisPointerType", thisPointerType_2);
+
     Matcher<QualType> (*references_1)(const Matcher<QualType>&) = references;
     Matcher<QualType> (*references_2)(const Matcher<Decl>&) = references;
 
