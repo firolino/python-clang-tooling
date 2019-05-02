@@ -2,10 +2,24 @@ import unittest
 from libtooling import *
 
 hasMatched = False
+bindingIsCorrect = False
+bindingNameToCheck = ("", 0)
+currentBindingCount = 0
 
 def callback(nodes):
     global hasMatched
     hasMatched = True
+
+def callbackWithBindingCheck(nodes):
+    global hasMatched
+    global bindingIsCorrect
+    global bindingNameToCheck
+    global currentBindingCount
+    hasMatched = True    
+    if nodes.getParmVarDecl(bindingNameToCheck[0]):
+        currentBindingCount = currentBindingCount + 1
+        if currentBindingCount == bindingNameToCheck[1]:
+            bindingIsCorrect = True        
 
 def matches(src, matcher):
     global hasMatched
@@ -17,6 +31,23 @@ def matches(src, matcher):
 
 def notMatches(src, matcher):
     return matches(src, matcher) == False
+    
+def matchAndVerifyResultTrue(src, matcher, idVerifier):
+    global hasMatched
+    global bindingIsCorrect
+    global bindingNameToCheck
+    global currentBindingCount
+    hasMatched = False
+    bindingIsCorrect = False
+    currentBindingCount = 0
+    bindingNameToCheck = idVerifier
+    tooling = Tooling()
+    tooling.add(matcher, callbackWithBindingCheck)
+    tooling.run_from_source(src)
+    return hasMatched and bindingIsCorrect
+    
+def VerifyIdIsBoundToParmVarDecl(name, expectedCount):
+    return (name, expectedCount)
 
 class TestMatchers(unittest.TestCase):
 
@@ -27,6 +58,30 @@ class TestMatchers(unittest.TestCase):
         
         self.assertTrue(notMatches("void f(int* i) { int* y; f(y); }", CallExpr))
         self.assertTrue(notMatches("void f(int i) { int x; f(x); }", CallExpr))
+        
+        ArgumentY = declRefExpr(to(varDecl(hasName("y")))).bind("arg")
+        IntParam = parmVarDecl(hasType(isInteger())).bind("param")
+        CallExpr = callExpr(forEachArgumentWithParam(ArgumentY, IntParam))
+        
+        self.assertTrue(matchAndVerifyResultTrue(
+                                    "struct S {"
+                                    "  const S& operator[](int i) { return *this; }"
+                                    "};"
+                                    "void f(S S1) {"
+                                    "  int y = 1;"
+                                    "  S1[y];"
+                                    "}", CallExpr, VerifyIdIsBoundToParmVarDecl("param", 1)))
+
+        CallExpr2 = callExpr(forEachArgumentWithParam(ArgumentY, IntParam))
+        
+        self.assertTrue(matchAndVerifyResultTrue(
+                                    "struct S {"
+                                    "  static void g(int i);"
+                                    "};"
+                                    "void f() {"
+                                    "  int y = 1;"
+                                    "  S::g(y);"
+                                    "}", CallExpr2, VerifyIdIsBoundToParmVarDecl("param", 1)))                                    
         
     def test_accessSpecDecl(self):
         self.assertTrue("class C { public: int i; };", accessSpecDecl())    
