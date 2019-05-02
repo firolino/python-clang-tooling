@@ -6,6 +6,7 @@
 #include "bound-nodes.h"
 #include "wrapper-expose.h"
 #include "poly-matcher.h"
+#include "simple-expose.h"
 #include "tooling/tooling.h"
 
 using namespace std;
@@ -151,17 +152,7 @@ BOOST_PYTHON_MODULE(libtooling)
 
         implicitly_convertible<Matcher<Decl>, Matcher<ParmVarDecl>>();
 
-
-        def("asString", asString);
-        def("refersToType", refersToType);
-        def("isInteger", isInteger);
-        def("hasName", hasName);
-        def("matchesName", matchesName);
-        def("isPublic", isPublic);
-        def("hasIndex", hasIndex);
-        def("isConstQualified", isConstQualified);
-        def("isImplicit", isImplicit);
-        def("to", to);
+        expose_simple();
 
         def("unless", 
             +[](Matcher<QualType> &arg1)

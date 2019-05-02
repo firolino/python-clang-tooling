@@ -18,6 +18,7 @@ set(CLANG_TOOL_SRC
         node-matcher.cc
         bound-nodes.cc
         poly-matcher.cc
+        simple-expose.cc
         wrapper-expose.cc
         tooling/tooling.cc
         utils/utils.cc
