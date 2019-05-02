@@ -19,7 +19,15 @@ def notMatches(src, matcher):
     return matches(src, matcher) == False
 
 class TestMatchers(unittest.TestCase):
-    
+
+    def test_dummy(self):
+        ArgumentY = declRefExpr(to(varDecl(hasName("y")))).bind("arg")
+        IntParam = parmVarDecl(hasType(isInteger())).bind("param")
+        CallExpr = callExpr(forEachArgumentWithParam(ArgumentY, IntParam))
+        
+        self.assertTrue(notMatches("void f(int* i) { int* y; f(y); }", CallExpr))
+        self.assertTrue(notMatches("void f(int i) { int x; f(x); }", CallExpr))
+        
     def test_accessSpecDecl(self):
         self.assertTrue("class C { public: int i; };", accessSpecDecl())    
         self.assertTrue("class C { public: int i; };", accessSpecDecl(isPublic()))

@@ -107,10 +107,6 @@ struct make_callable_arg<clang::ast_matchers::internal::Matcher<U>>
     class_<decltype(name(arg))>("typematcher_" STRINGIFY(name), init<ArrayRef<const Matcher<QualType>*>>());\
     implicitly_convertible_helper<decltype(name(arg))>()
 
-#define EXPOSE_MATCHER_P1(name, paramT, arg)                                        \
-    def(STRINGIFY(name), name);                                                     \
-    class_<decltype(name(arg))>("matcher_" STRINGIFY(name), init<const paramT&>())  \
-
 
 
 BOOST_PYTHON_MODULE(libtooling)
@@ -151,6 +147,9 @@ BOOST_PYTHON_MODULE(libtooling)
         implicitly_convertible<Matcher<NamedDecl>, Matcher<ParmVarDecl>>();
         implicitly_convertible<Matcher<Type>, Matcher<QualType>>();
         implicitly_convertible<Matcher<Stmt>, Matcher<Expr>>();
+        implicitly_convertible<Matcher<ValueDecl>, Matcher<ParmVarDecl>>();
+
+        implicitly_convertible<Matcher<Decl>, Matcher<ParmVarDecl>>();
 
 
         def("asString", asString);
@@ -162,6 +161,7 @@ BOOST_PYTHON_MODULE(libtooling)
         def("hasIndex", hasIndex);
         def("isConstQualified", isConstQualified);
         def("isImplicit", isImplicit);
+        def("to", to);
 
         def("unless", 
             +[](Matcher<QualType> &arg1)
