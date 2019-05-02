@@ -5,6 +5,7 @@
 #include "node-matcher.h"
 #include "bound-nodes.h"
 #include "wrapper-expose.h"
+#include "poly-matcher.h"
 #include "tooling/tooling.h"
 
 using namespace std;
@@ -72,16 +73,17 @@ struct implicitly_convertible_helper
             )                                                                       \
         ;                                                                           \
 
-#define EXPOSE_POLY_MATCHER(name, paramT, arg)                                      \
-    def(STRINGIFY(name),                                                        \
-        +[](const paramT &param1)                                                   \
-        {                                                                           \
-            return name(param1);                                                    \
-        }                                                                           \
-    );                                                                              \
-                                                                                    \
-    class_<decltype(name(arg))>("matcher_" STRINGIFY(name), init<const paramT&>()); \
-    implicitly_convertible_helper<decltype(name(arg))>()
+template<typename T>
+struct make_callable_arg
+{
+    static auto arg() { return T(); }
+};
+
+template<typename U>
+struct make_callable_arg<clang::ast_matchers::internal::Matcher<U>>
+{
+    static auto arg() { return clang::ast_matchers::internal::Matcher<U>(nullptr); }
+};
 
 #define EXPOSE_TYPE_TRAVERSE_MATCHER(name, arg)                                                   \
     def(STRINGIFY(name),                                                            \
@@ -142,19 +144,7 @@ BOOST_PYTHON_MODULE(libtooling)
         using namespace clang::ast_matchers::internal;
 
         expose_node_matcher();
-
-        EXPOSE_POLY_MATCHER(hasType, Matcher<QualType>, isInteger());
-        EXPOSE_POLY_MATCHER(isExpansionInFileMatching, std::string, "");
-        EXPOSE_POLY_MATCHER(hasAnyTemplateArgument, Matcher<TemplateArgument>, refersToType(asString("int")));
-        EXPOSE_POLY_MATCHER(parameterCountIs, unsigned int, 0);
-        EXPOSE_POLY_MATCHER(templateArgumentCountIs, unsigned int, 0);
-        EXPOSE_POLY_MATCHER(argumentCountIs, unsigned int, 0);
-        EXPOSE_POLY_MATCHER(hasAnyArgument, Matcher<Expr>, declRefExpr());
-        EXPOSE_POLY_MATCHER(hasAnyParameter, Matcher<ParmVarDecl>, hasName(""));
-        EXPOSE_POLY_MATCHER(equals, bool, false);
-        EXPOSE_POLY_MATCHER(equals, unsigned int, 1u);
-        EXPOSE_POLY_MATCHER(equals, double, 0.0);
-        EXPOSE_POLY_MATCHER(hasSize, unsigned int, 0);
+        expose_poly_matcher();        
 
         implicitly_convertible<BindableMatcher<Stmt>, Matcher<Expr>>();
         implicitly_convertible<BindableMatcher<Type>, Matcher<QualType>>();
