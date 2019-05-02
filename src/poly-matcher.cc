@@ -74,6 +74,18 @@ struct make_callable_arg<clang::ast_matchers::internal::Matcher<U>>
     class_<decltype(name(make_callable_arg<paramT>::arg()))>("matcher_" STRINGIFY(name), init<const paramT&>()); \
     implicitly_convertible_helper<decltype(name(make_callable_arg<paramT>::arg()))>()
 
+
+#define EXPOSE_POLY_MATCHER_P2(name, paramT1, paramT2)                                      \
+    def(STRINGIFY(name),                                                        \
+        +[](const paramT1 &param1, const paramT2 &param2)                                                   \
+        {                                                                           \
+            return name(param1, param2);                                                    \
+        }                                                                           \
+    );                                                                              \
+                                                                                    \
+    class_<decltype(name(make_callable_arg<paramT1>::arg(), make_callable_arg<paramT2>::arg()))>("matcher_" STRINGIFY(name), init<const paramT1&,const paramT2&>()); \
+    implicitly_convertible_helper<decltype(name(make_callable_arg<paramT1>::arg(), make_callable_arg<paramT2>::arg()))>()
+
 void expose_poly_matcher()
 {
     using namespace boost::python;
@@ -104,4 +116,9 @@ void expose_poly_matcher()
     EXPOSE_POLY_MATCHER(isExpansionInFileMatching, std::string);
     EXPOSE_POLY_MATCHER(parameterCountIs, unsigned int);
     EXPOSE_POLY_MATCHER(templateArgumentCountIs, unsigned int);
+
+    EXPOSE_POLY_MATCHER_P2(hasTemplateArgument, unsigned int, Matcher<TemplateArgument>);
+    EXPOSE_POLY_MATCHER_P2(hasArgument, unsigned int, Matcher<Expr>);
+    EXPOSE_POLY_MATCHER_P2(hasParameter, unsigned int, Matcher<ParmVarDecl>);
+    EXPOSE_POLY_MATCHER_P2(forEachArgumentWithParam, Matcher<Expr>, Matcher<ParmVarDecl>);
 }
