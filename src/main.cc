@@ -94,13 +94,13 @@ struct make_callable_arg<clang::ast_matchers::internal::Matcher<U>>
         }                                                                           \
     );                                                                              \
     def(STRINGIFY(name),                                                            \
-        +[](Matcher<QualType> bm)                                                             \
+        +[](const Matcher<QualType> &bm)                                                             \
         {                                                                           \
             return name(bm);                                                          \
         }                                                                           \
     );\
     def(STRINGIFY(name),                                                            \
-        +[](Matcher<QualType> arg1, Matcher<QualType> arg2)                                                             \
+        +[](const Matcher<QualType> &arg1, const Matcher<QualType> &arg2)                                                             \
         {                                                                           \
             return name(arg1, arg2);                                                          \
         }                                                                           \
@@ -109,6 +109,101 @@ struct make_callable_arg<clang::ast_matchers::internal::Matcher<U>>
     implicitly_convertible_helper<decltype(name(arg))>()
 
 
+#define EXPOSE_OPERATOR_MATCHER_1(name)\
+    def(STRINGIFY(name),\
+        +[](const Matcher<QualType> &arg1)\
+        {\
+            return Matcher<QualType>(name(arg1));\
+        }\
+    );\
+    def(STRINGIFY(name),\
+        +[](const Matcher<Decl> &arg1)\
+        {\
+            return Matcher<Decl>(name(arg1));\
+        }\
+    );
+
+#define EXPOSE_OPERATOR_MATCHER_2(name)\
+    def(STRINGIFY(name),\
+        +[](const Matcher<QualType> &arg1, const Matcher<QualType> &arg2)\
+        {\
+            return Matcher<QualType>(name(arg1, arg2));\
+        }\
+    );\
+    def(STRINGIFY(name),\
+        +[](const Matcher<Decl> &arg1, const Matcher<Decl> &arg2)\
+        {\
+            return Matcher<Decl>(name(arg1, arg2));\
+        }\
+    );
+
+#define DEFINE_ARGUMENT_ADAPTING_MATCHER(name, func)\
+    struct name\
+    {\
+        template<typename... ArgsT>\
+        auto call(const ArgsT &... args)\
+        {\
+            return clang::ast_matchers::func(args...);\
+        }\
+    }\
+
+DEFINE_ARGUMENT_ADAPTING_MATCHER(Has, has);
+DEFINE_ARGUMENT_ADAPTING_MATCHER(HasDescendant, hasDescendant);
+DEFINE_ARGUMENT_ADAPTING_MATCHER(ForEach, forEach);
+DEFINE_ARGUMENT_ADAPTING_MATCHER(ForEachDescendant, forEachDescendant);
+DEFINE_ARGUMENT_ADAPTING_MATCHER(HasParent, hasParent);
+DEFINE_ARGUMENT_ADAPTING_MATCHER(HasAncestor, hasAncestor);
+
+#define EXPOSE_AAM(name, func)\
+    class_<name>(STRINGIFY(name) "Impl")\
+            .def("__call__",\
+                +[](name &self, const clang::ast_matchers::internal::Matcher<clang::Decl> &arg)\
+                {\
+                    return self.call(arg);\
+                }\
+            )\
+            .def("__call__",\
+                +[](name &self, const clang::ast_matchers::internal::Matcher<clang::Stmt> &arg)\
+                {\
+                    return self.call(arg);\
+                }\
+            );\
+    name func;\
+    scope().attr(STRINGIFY(func)) = func
+
+#define EXPOSE_ADAPTER(name)\
+        class_<typename ArgumentAdaptingMatcherFunc<name>::Adaptor<Decl>>("Adapter_" STRINGIFY(name), init<const Matcher<Decl>&>())\
+            .def("__call__",\
+                +[](const Matcher<Decl> &arg)\
+                {\
+                    return ArgumentAdaptingMatcherFunc<name>::Adaptor<Decl>(arg);\
+                }\
+            )\
+        ;\
+        implicitly_convertible_helper<typename ArgumentAdaptingMatcherFunc<name>::Adaptor<Decl>>();\
+        boost::python::implicitly_convertible<typename ArgumentAdaptingMatcherFunc<name>::Adaptor<Decl>, clang::ast_matchers::internal::Matcher<NamedDecl>>();\
+        boost::python::implicitly_convertible<typename ArgumentAdaptingMatcherFunc<name>::Adaptor<Decl>, clang::ast_matchers::internal::Matcher<QualType>>()   
+
+#define EXPOSE_ADAPTER_2(name)\
+        using T = TypeList<Decl, NestedNameSpecifierLoc, Stmt, TypeLoc>;\
+        class_<typename ArgumentAdaptingMatcherFunc<name, T, T>::Adaptor<Decl>>("Adapter_" STRINGIFY(name) "Decl", init<const Matcher<Decl>&>())\
+            .def("__call__",\
+                +[](const Matcher<Decl> &arg)\
+                {\
+                    return ArgumentAdaptingMatcherFunc<name, T, T>::Adaptor<Decl>(arg);\
+                }\
+            )\
+        ;\
+        implicitly_convertible_helper<typename ArgumentAdaptingMatcherFunc<name, T, T>::Adaptor<Decl>>();\
+        class_<typename ArgumentAdaptingMatcherFunc<name, T, T>::Adaptor<Stmt>>("Adapter_" STRINGIFY(name) "Stmt", init<const Matcher<Stmt>&>())\
+            .def("__call__",\
+                +[](const Matcher<Stmt> &arg)\
+                {\
+                    return ArgumentAdaptingMatcherFunc<name, T, T>::Adaptor<Stmt>(arg);\
+                }\
+            )\
+        ;\
+        implicitly_convertible_helper<typename ArgumentAdaptingMatcherFunc<name, T, T>::Adaptor<Stmt>>()
 
 BOOST_PYTHON_MODULE(libtooling)
 {
@@ -151,30 +246,86 @@ BOOST_PYTHON_MODULE(libtooling)
         implicitly_convertible<Matcher<ValueDecl>, Matcher<ParmVarDecl>>();
 
         implicitly_convertible<Matcher<Decl>, Matcher<ParmVarDecl>>();
+        //implicitly_convertible<Matcher<NamedDecl>, Matcher<Decl>>();
+
 
         expose_simple();
-
-        def("unless", 
-            +[](Matcher<QualType> &arg1)
-            {
-                return Matcher<QualType>(unless(arg1));
-            }
-        );  
-        def("unless", 
-            +[](Matcher<Decl> &arg1)
-            {
-                return Matcher<Decl>(unless(arg1));
+        
+        class_<PolymorphicMatcherWithParam1<HasDeclarationMatcher, Matcher<Decl>, void(HasDeclarationSupportedTypes)>>("hasDeclaration_Matcher", init<const Matcher<Decl>&>());
+        implicitly_convertible_helper<decltype(hasDeclaration(make_callable_arg<Matcher<Decl>>::arg()))>();
+        def("hasDeclaration", hasDeclaration);
+        
+        class_<PolymorphicMatcherWithParam1<HasOverloadedOperatorNameMatcher,StringRef,AST_POLYMORPHIC_SUPPORTED_TYPES(CXXOperatorCallExpr, FunctionDecl)>>("hasOverloadedOperatorName_Matcher", init<const StringRef&>());
+        
+        implicitly_convertible_helper<decltype(hasOverloadedOperatorName(make_callable_arg<StringRef>::arg()))>();
+        
+        def("hasOverloadedOperatorName", 
+            +[](const std::string &opname)                                                                       
+            {                                                                           
+                return clang::ast_matchers::hasOverloadedOperatorName(opname);                                                          
             }
         );
 
+        clang::ast_matchers::internal::Matcher<clang::CXXMethodDecl> a = hasOverloadedOperatorName("*");
+        implicitly_convertible<decltype(hasOverloadedOperatorName("*")), Matcher<CXXMethodDecl>>();
+
+        EXPOSE_OPERATOR_MATCHER_1(unless);
+        
+        EXPOSE_OPERATOR_MATCHER_2(eachOf);
+        EXPOSE_OPERATOR_MATCHER_2(anyOf);
+        EXPOSE_OPERATOR_MATCHER_2(allOf);
+
         EXPOSE_TYPE_TRAVERSE_MATCHER(hasElementType, builtinType());        
         EXPOSE_TYPE_TRAVERSE_MATCHER(hasValueType, isInteger()); 
+        EXPOSE_TYPE_TRAVERSE_MATCHER(hasDeducedType, isInteger()); 
+        EXPOSE_TYPE_TRAVERSE_MATCHER(hasUnderlyingType, isInteger()); 
+        EXPOSE_TYPE_TRAVERSE_MATCHER(innerType, functionType()); 
+
+        def("pointee",                                                            
+            +[]()                                                                       
+            {                                                                           
+                return clang::ast_matchers::pointee();                                                          
+            }                                                                           
+        );                                                                              
+        def("pointee",                                                            
+            +[](const Matcher<QualType> &bm)                                                            
+            {                                                                           
+                return clang::ast_matchers::pointee(bm);                                                          
+            }                                                                           
+        );
+        def("pointee",                                                            
+            +[](const Matcher<QualType> &arg1, const Matcher<QualType> &arg2)                                                             
+            {                                                                           
+                return clang::ast_matchers::pointee(arg1, arg2);                                                          
+            }                                                                           
+        );
+        class_<decltype(clang::ast_matchers::pointee(isInteger()))>("typematcher_pointee", init<ArrayRef<const Matcher<QualType>*>>());    
+        implicitly_convertible_helper<decltype(clang::ast_matchers::pointee(isInteger()))>();
 
         expose_bound_nodes();
     }
 
     expose_wrapper();
+
+    {
+        using namespace clang;
+        using namespace clang::ast_matchers;
+        using namespace clang::ast_matchers::internal;
+
+        EXPOSE_ADAPTER(HasMatcher);
+        EXPOSE_ADAPTER(HasDescendantMatcher);      
+        EXPOSE_ADAPTER(ForEachMatcher);      
+        EXPOSE_ADAPTER(ForEachDescendantMatcher);      
+        EXPOSE_ADAPTER_2(HasParentMatcher);      
+        EXPOSE_ADAPTER_2(HasAncestorMatcher);      
+
+    }
+
+    EXPOSE_AAM(Has, has);    
+    EXPOSE_AAM(HasDescendant, hasDescendant);    
+    EXPOSE_AAM(ForEach, forEach);    
+    EXPOSE_AAM(ForEachDescendant, forEachDescendant);    
+    EXPOSE_AAM(HasParent, hasParent);    
+    EXPOSE_AAM(HasAncestor, hasAncestor);    
 }
-
-
 

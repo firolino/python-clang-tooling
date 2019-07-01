@@ -16,7 +16,7 @@
             }\
         )\
         .def("__call__",\
-            +[](ExposedType &self, clang::ast_matchers::internal::Matcher<clang::name> arg)\
+            +[](ExposedType &self, const clang::ast_matchers::internal::Matcher<clang::name> &arg)\
             {\
                 return self.call(arg);\
             }\
@@ -24,7 +24,7 @@
 
 #define EXPOSE_WRAPPER_CALL_FUNC(other)\
     .def("__call__",\
-        +[](ExposedType &self, clang::ast_matchers::internal::Matcher<clang::other> arg)\
+        +[](ExposedType &self, const clang::ast_matchers::internal::Matcher<clang::other> &arg)\
         {\
             return self.call(arg);\
         }\
@@ -32,7 +32,7 @@
 
 #define EXPOSE_WRAPPER_CALL_FUNC_P2(other1, other2)\
     .def("__call__",\
-        +[](ExposedType &self, clang::ast_matchers::internal::Matcher<clang::other1> arg1, clang::ast_matchers::internal::Matcher<clang::other2> arg2)\
+        +[](ExposedType &self, const clang::ast_matchers::internal::Matcher<clang::other1> &arg1, const clang::ast_matchers::internal::Matcher<clang::other2> &arg2)\
         {\
             return self.call(arg1, arg2);\
         }\
@@ -295,6 +295,7 @@ void expose_wrapper()
     END_WRAPPER_EXPOSING()
 
     EXPOSE_WRAPPER(CompoundStmt)
+        EXPOSE_WRAPPER_CALL_FUNC(Stmt)
     END_WRAPPER_EXPOSING()
 
     EXPOSE_WRAPPER(ConditionalOperator)
@@ -370,6 +371,8 @@ void expose_wrapper()
     END_WRAPPER_EXPOSING()
 
     EXPOSE_WRAPPER(CXXRecordDecl)
+        EXPOSE_WRAPPER_CALL_FUNC(Decl)
+        EXPOSE_WRAPPER_CALL_FUNC(NamedDecl)
     END_WRAPPER_EXPOSING()
 
     EXPOSE_WRAPPER(CXXReinterpretCastExpr)
@@ -436,6 +439,7 @@ void expose_wrapper()
     END_WRAPPER_EXPOSING()
 
     EXPOSE_WRAPPER(FieldDecl)
+        EXPOSE_WRAPPER_CALL_FUNC(NamedDecl)
     END_WRAPPER_EXPOSING()
 
     EXPOSE_WRAPPER(FloatingLiteral)
@@ -479,6 +483,7 @@ void expose_wrapper()
     END_WRAPPER_EXPOSING()
 
     EXPOSE_WRAPPER(IntegerLiteral)
+        EXPOSE_WRAPPER_CALL_FUNC(Stmt)
     END_WRAPPER_EXPOSING()
 
     EXPOSE_WRAPPER(LabelDecl)

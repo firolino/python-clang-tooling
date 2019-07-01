@@ -51,7 +51,21 @@ def VerifyIdIsBoundToParmVarDecl(name, expectedCount):
 
 class TestMatchers(unittest.TestCase):
 
+    def test_last(self):
+        cxxRecordDecl(hasDescendant(cxxRecordDecl(hasName("X"))))
+        cxxRecordDecl(forEach(cxxRecordDecl(hasName("X"))))
+        compoundStmt(hasParent(ifStmt()))
+        expr(integerLiteral(hasAncestor(ifStmt())))
+        varDecl(hasType(hasUnqualifiedDesugaredType(recordType(hasDeclaration(decl())))))
+        cxxRecordDecl(hasMethod(hasOverloadedOperatorName("*")))
+
     def test_dummy(self):
+        d = pointee(isInteger())
+        xx = pointerType(pointee(isConstQualified(), isInteger()))
+        
+        cxxRecordDecl(has(cxxRecordDecl(hasName("X"))))
+        cxxRecordDecl(eachOf(has(fieldDecl(hasName("a")).bind("v")), has(fieldDecl(hasName("b")).bind("v"))))
+        
         ArgumentY = declRefExpr(to(varDecl(hasName("y")))).bind("arg")
         IntParam = parmVarDecl(hasType(isInteger())).bind("param")
         CallExpr = callExpr(forEachArgumentWithParam(ArgumentY, IntParam))

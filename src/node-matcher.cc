@@ -90,29 +90,6 @@ struct name                                                                     
     class_<decltype(name(arg))>("matcher_" STRINGIFY(name), init<const paramT&>()); \
     implicitly_convertible_helper<decltype(name(arg))>()
 
-#define EXPOSE_TYPE_TRAVERSE_MATCHER(name, arg)                                                   \
-    def(STRINGIFY(name),                                                            \
-        +[]()                                                                       \
-        {                                                                           \
-            return name();                                                          \
-        }                                                                           \
-    );                                                                              \
-    def(STRINGIFY(name),                                                            \
-        +[](Matcher<QualType> bm)                                                             \
-        {                                                                           \
-            return name(bm);                                                          \
-        }                                                                           \
-    );\
-    def(STRINGIFY(name),                                                            \
-        +[](Matcher<QualType> arg1, Matcher<QualType> arg2)                                                             \
-        {                                                                           \
-            return name(arg1, arg2);                                                          \
-        }                                                                           \
-    );\
-    class_<decltype(name(arg))>("typematcher_" STRINGIFY(name), init<ArrayRef<const Matcher<QualType>*>>());\
-    implicitly_convertible_helper<decltype(name(arg))>()
-
-
 void expose_node_matcher()
 {
     using namespace boost::python;
