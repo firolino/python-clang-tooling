@@ -657,6 +657,7 @@ void expose_wrapper()
     EXPOSE_WRAPPER(VarDecl)
         EXPOSE_WRAPPER_CALL_FUNC(NamedDecl)
         EXPOSE_WRAPPER_CALL_FUNC(ValueDecl)
+        EXPOSE_WRAPPER_CALL_FUNC_P2(NamedDecl, Decl)
     END_WRAPPER_EXPOSING()
 
     EXPOSE_WRAPPER(WhileStmt)

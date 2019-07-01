@@ -159,6 +159,9 @@ class ASTMatchersNodeTest(unittest.TestCase):
     def EXPECT_TRUE(self, m):
         self.assertTrue(m)
 
+    def EXPECT_FALSE(self, m):
+        self.assertFalse(m)
+
     def test_MatchesDeclarations(self):
         self.EXPECT_TRUE(notMatches("", decl(usingDecl())))
         self.EXPECT_TRUE(matches("namespace x { class X {}; } using x::X;", decl(usingDecl())))
@@ -237,6 +240,16 @@ class ASTMatchersNodeTest(unittest.TestCase):
         self.EXPECT_TRUE(notMatches(self.MkStr("MyX x; x + x;"), ADLMatchOper))
         self.EXPECT_TRUE(matches(self.MkStr("NS::X x; operator+(x, x);"), ADLMatch))
         self.EXPECT_TRUE(notMatches(self.MkStr("NS::X x; NS::operator+(x, x);"), ADLMatch))
+
+    def test_translationUnitDecl(self):
+        Code = "int MyVar1;\n" \
+                "namespace NameSpace {\n"\
+                "int MyVar2;\n"\
+                "}  // namespace NameSpace\n"
+        
+        self.EXPECT_TRUE(matches(Code, varDecl(hasName("MyVar1"), hasDeclContext(translationUnitDecl()))))
+        self.EXPECT_FALSE(matches(Code, varDecl(hasName("MyVar2"), hasDeclContext(translationUnitDecl()))))
+        self.EXPECT_TRUE(matches(Code, varDecl(hasName("MyVar2"), hasDeclContext(decl(hasDeclContext(translationUnitDecl()))))))
 
 if __name__ == '__main__':
     #suite = unittest.TestLoader().loadTestsFromTestCase(TestMatchers)
