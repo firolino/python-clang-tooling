@@ -154,6 +154,93 @@ class TestMatchers(unittest.TestCase):
         self.assertTrue(matches("typedef int Xa;", NamedX))
         self.assertTrue(matches("int Xb;", NamedX))
 
+class ASTMatchersNodeTest(unittest.TestCase):
+    
+    def EXPECT_TRUE(self, m):
+        self.assertTrue(m)
+
+    def test_MatchesDeclarations(self):
+        self.EXPECT_TRUE(notMatches("", decl(usingDecl())))
+        self.EXPECT_TRUE(matches("namespace x { class X {}; } using x::X;", decl(usingDecl())))
+
+    def test_MatchesVariousDecls(self):
+        NamedX = namedDecl(hasName("X"))
+        self.EXPECT_TRUE(matches("typedef int X;", NamedX))
+        self.EXPECT_TRUE(matches("int X;", NamedX))
+        self.EXPECT_TRUE(matches("class foo { virtual void X(); };", NamedX))
+        self.EXPECT_TRUE(matches("void foo() try { } catch(int X) { }", NamedX))
+        self.EXPECT_TRUE(matches("void foo() { int X; }", NamedX))
+        self.EXPECT_TRUE(matches("namespace X { }", NamedX))
+        self.EXPECT_TRUE(matches("enum X { A, B, C };", NamedX))
+        self.EXPECT_TRUE(notMatches("#define X 1", NamedX))
+
+    def test_REMatchesVariousDecls(self):
+        NamedX = namedDecl(matchesName("::X"))
+        self.EXPECT_TRUE(matches("typedef int Xa;", NamedX))
+        self.EXPECT_TRUE(matches("int Xb;", NamedX))
+        self.EXPECT_TRUE(matches("class foo { virtual void Xc(); };", NamedX))
+        self.EXPECT_TRUE(matches("void foo() try { } catch(int Xdef) { }", NamedX))
+        self.EXPECT_TRUE(matches("void foo() { int Xgh; }", NamedX))
+        self.EXPECT_TRUE(matches("namespace Xij { }", NamedX))
+        self.EXPECT_TRUE(matches("enum X { A, B, C };", NamedX))
+
+        self.EXPECT_TRUE(notMatches("#define Xkl 1", NamedX))
+
+        StartsWithNo = namedDecl(matchesName("::no"))
+        self.EXPECT_TRUE(matches("int no_foo;", StartsWithNo))
+        self.EXPECT_TRUE(matches("class foo { virtual void nobody(); };", StartsWithNo))
+
+        Abc = namedDecl(matchesName("a.*b.*c"))
+        self.EXPECT_TRUE(matches("int abc;", Abc))
+        self.EXPECT_TRUE(matches("int aFOObBARc;", Abc))
+        self.EXPECT_TRUE(notMatches("int cab;", Abc))
+        self.EXPECT_TRUE(matches("int cabc;", Abc))
+
+        StartsWithK = namedDecl(matchesName(":k[^:]*$"))
+        self.EXPECT_TRUE(matches("int k;", StartsWithK))
+        self.EXPECT_TRUE(matches("int kAbc;", StartsWithK))
+        self.EXPECT_TRUE(matches("namespace x { int kTest; }", StartsWithK))
+        self.EXPECT_TRUE(matches("class C { int k; };", StartsWithK))
+        self.EXPECT_TRUE(notMatches("class C { int ckc; };", StartsWithK))
+    
+    def test_MatchClass(self):
+        ClassX = recordDecl(recordDecl(hasName("X")))
+        self.EXPECT_TRUE(matches("class X;", ClassX))
+        self.EXPECT_TRUE(matches("class X {};", ClassX))
+        self.EXPECT_TRUE(matches("template<class T> class X {};", ClassX))
+        self.EXPECT_TRUE(notMatches("", ClassX))
+
+    def MkStr(self, Body):
+        str = "namespace NS {\
+                struct X {};\
+                void f(X);\
+                void operator+(X, X);\
+                }\
+                struct MyX {};\
+                void f(...);\
+                void operator+(MyX, MyX);" + "void test_fn() { " + Body + " }"
+        return str
+
+    def test_ADLCall(self):
+        ADLMatch = callExpr(usesADL())
+        ADLMatchOper = cxxOperatorCallExpr(usesADL())
+
+        self.EXPECT_TRUE(matches(self.MkStr("NS::X x; f(x);"), ADLMatch))
+        self.EXPECT_TRUE(notMatches(self.MkStr("NS::X x; NS::f(x);"), ADLMatch))
+        self.EXPECT_TRUE(notMatches(self.MkStr("MyX x; f(x);"), ADLMatch))
+        self.EXPECT_TRUE(notMatches(self.MkStr("NS::X x; using NS::f; f(x);"), ADLMatch))
+
+        #Operator call expressions
+        self.EXPECT_TRUE(matches(self.MkStr("NS::X x; x + x;"), ADLMatch))
+        self.EXPECT_TRUE(matches(self.MkStr("NS::X x; x + x;"), ADLMatchOper))
+        self.EXPECT_TRUE(notMatches(self.MkStr("MyX x; x + x;"), ADLMatch))
+        self.EXPECT_TRUE(notMatches(self.MkStr("MyX x; x + x;"), ADLMatchOper))
+        self.EXPECT_TRUE(matches(self.MkStr("NS::X x; operator+(x, x);"), ADLMatch))
+        self.EXPECT_TRUE(notMatches(self.MkStr("NS::X x; NS::operator+(x, x);"), ADLMatch))
+
 if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(TestMatchers)
+    #suite = unittest.TestLoader().loadTestsFromTestCase(TestMatchers)
+    #unittest.TextTestRunner(verbosity=2).run(suite)
+
+    suite = unittest.TestLoader().loadTestsFromTestCase(ASTMatchersNodeTest)
     unittest.TextTestRunner(verbosity=2).run(suite)

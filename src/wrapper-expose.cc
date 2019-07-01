@@ -368,6 +368,7 @@ void expose_wrapper()
     END_WRAPPER_EXPOSING()
 
     EXPOSE_WRAPPER(CXXOperatorCallExpr)
+            EXPOSE_WRAPPER_CALL_FUNC(CallExpr)
     END_WRAPPER_EXPOSING()
 
     EXPOSE_WRAPPER(CXXRecordDecl)
@@ -580,6 +581,8 @@ void expose_wrapper()
     END_WRAPPER_EXPOSING()
 
     EXPOSE_WRAPPER(RecordDecl)
+        EXPOSE_WRAPPER_CALL_FUNC(Decl)
+        EXPOSE_WRAPPER_CALL_FUNC(NamedDecl)
     END_WRAPPER_EXPOSING()
 
     EXPOSE_WRAPPER(ReturnStmt)
